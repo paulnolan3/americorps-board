@@ -223,7 +223,6 @@ else:
         ("Skills",    "📚"),
         ("Service Areas", "🌐"),
         ("Contact",   "✉️"),
-        ("Apply",     "📝")
     ]
     tabs = st.tabs([f"{emoji} {label}" for label, emoji in tab_labels])
 
@@ -231,6 +230,32 @@ else:
     with tabs[0]:
         st.write(prog.get('description', ''))
         st.write(f"**Listing ID:** {prog['listing_id']}")
+
+            # 1) Build the URL dynamically from the listing_id
+        url = (
+            "https://my.americorps.gov/mp/listing/viewListing.do"
+            f"?fromSearch=true&id={prog['listing_id']}"
+        )
+        # 2) Render it as a clickable button via HTML
+        st.markdown(
+            f'''
+            <a href="{url}" target="_blank" style="text-decoration:none">
+              <button style="
+                background-color:#1550ed;
+                color:white;
+                padding:8px 16px;
+                border:none;
+                border-radius:4px;
+                font-size:1em;
+                cursor:pointer;
+              ">
+                📝 Apply Now
+              </button>
+            </a>
+            ''',
+            unsafe_allow_html=True
+        )
+
 
     # Duties
     with tabs[1]:
@@ -265,30 +290,3 @@ else:
     # Contact
     with tabs[6]:
         st.text(prog['contact'])
-
-    # Apply (placeholder)
-    with tabs[7]:
-        # 1) Build the URL dynamically from the listing_id
-        url = (
-            "https://my.americorps.gov/mp/listing/viewListing.do"
-            f"?fromSearch=true&id={prog['listing_id']}"
-        )
-        # 2) Render it as a clickable button via HTML
-        st.markdown(
-            f'''
-            <a href="{url}" target="_blank" style="text-decoration:none">
-              <button style="
-                background-color:#1550ed;
-                color:white;
-                padding:8px 16px;
-                border:none;
-                border-radius:4px;
-                font-size:1em;
-                cursor:pointer;
-              ">
-                Apply Now
-              </button>
-            </a>
-            ''',
-            unsafe_allow_html=True
-        )
