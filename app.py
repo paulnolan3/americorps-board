@@ -2,14 +2,23 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 
-# Pill CSS
+# Pill CSS for Service Areas and Skills
 st.markdown("""
 <style>
   .pill {
     display: inline-block;
     padding: 4px 10px;
     margin: 2px 4px;
-    background-color: #1550ed;
+    background-color: #1550ed;  /* service areas color */
+    color: white;
+    border-radius: 10px;
+    font-size: 0.9em;
+  }
+  .pill-skill {
+    display: inline-block;
+    padding: 4px 10px;
+    margin: 2px 4px;
+    background-color: #112542;  /* skills color */
     color: white;
     border-radius: 10px;
     font-size: 0.9em;
@@ -201,9 +210,14 @@ else:
     with tabs[3]:
         st.write(prog['terms'])
 
-    # Skills
+    # Skills as pills with #112542
     with tabs[4]:
-        st.write(prog['skills'])
+        skills = prog['skills'].split(',')
+        skills_html = "".join(
+            f'<span class="pill-skill">{skill.strip()}</span>'
+            for skill in skills if skill.strip()
+        )
+        st.markdown(skills_html, unsafe_allow_html=True)
 
     # Service Areas as pills
     with tabs[5]:
