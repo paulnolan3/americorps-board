@@ -8,14 +8,10 @@ from datetime import date, timedelta
 def load_data():
     df = pd.read_csv('americorps_listings_extracted.csv')
 
-    # Clean up list‐style strings
+    # clean up list‐style strings
     for col in [
-        'program_state',
-        'program_type',
-        'service_areas',
-        'skills',
-        'work_schedule',
-        'languages'
+        'program_state','program_type','service_areas',
+        'skills','work_schedule','languages'
     ]:
         df[col] = (
             df[col]
@@ -25,7 +21,7 @@ def load_data():
             .str.strip()
         )
 
-    # Parse date fields
+    # parse dates
     df['accept_start'] = pd.to_datetime(df['accept_start'],
                                         format='%m/%d/%Y',
                                         errors='coerce')
@@ -39,7 +35,7 @@ df = load_data()
 # === Sidebar Filters ===
 st.sidebar.header("Filters")
 
-# Program State
+# Program State (multi-select)
 state_options = sorted(df['program_state'].unique())
 states = st.sidebar.multiselect(
     "Program State",
@@ -47,7 +43,7 @@ states = st.sidebar.multiselect(
     default=state_options
 )
 
-# Education Level
+# Education Level (single-select)
 EDU_OPTIONS = [
     "Less than High school",
     "Technical school / apprenticeship / vocational",
@@ -57,75 +53,11 @@ EDU_OPTIONS = [
     "College graduate",
     "Graduate degree (e.g. MA, PhD, MD, JD)"
 ]
-educations = st.sidebar.multiselect(
+education = st.sidebar.selectbox(
     "Education Level",
-    options=EDU_OPTIONS,
-    default=EDU_OPTIONS
+    options=EDU_OPTIONS
 )
 
-# Work Schedule
+# Work Schedule (checkboxes)
 WORK_OPTIONS = ["Full Time", "Part Time", "Summer"]
-selected_work = []
-st.sidebar.markdown("**Work Schedule**")
-for opt in WORK_OPTIONS:
-    if st.sidebar.checkbox(opt, value=True):
-        selected_work.append(opt)
-
-# Apply Soon
-apply_soon = st.sidebar.checkbox(
-    "Apply soon",
-    help="Deadline within the next two weeks"
-)
-
-# === Apply Filters ===
-filtered = df[
-    df['program_state'].isin(states) &
-    df['education_level'].isin(educations) &
-    df['work_schedule'].isin(selected_work)
-]
-
-if apply_soon:
-    today, cutoff = date.today(), date.today() + timedelta(days=14)
-    filtered = filtered[
-        (filtered['accept_end'].dt.date >= today) &
-        (filtered['accept_end'].dt.date <= cutoff)
-    ]
-
-# Helper to format dates
-def format_date(ts):
-    if pd.isna(ts):
-        return ""
-    return ts.strftime("%B %-d, %Y")
-
-# === Detail View ===
-if st.session_state.get('selected_program'):
-    prog = filtered.loc[
-        filtered['listing_id'] == st.session_state.selected_program
-    ].iloc[0]
-
-    if st.button("◀ Back to overview"):
-        st.session_state.selected_program = None
-
-    st.header(prog['program_name'])
-    for col in prog.index:
-        val = prog[col]
-        if col in ("accept_start", "accept_end"):
-            val = format_date(val)
-        if col in ("age_minimum", "age_maximum") and pd.isna(val):
-            val = "None"
-        st.markdown(f"**{col.replace('_',' ').title()}:** {val}")
-
-# === Overview Page ===
-else:
-    st.title("AmeriCorps Opportunities")
-    for _, row in filtered.iterrows():
-        start = format_date(row['accept_start'])
-        end   = format_date(row['accept_end'])
-
-        st.subheader(row['program_name'])
-        st.write(f"State: {row['program_state'].title()}")
-        st.write(f"Education Level: {row['education_level']}")
-        st.write(f"Work Schedule: {row['work_schedule']}")
-        st.write(f"Accepting Applications: {start} → {end}")
-        if st.button("Learn more", key=row['listing_id']):
-            st.session_state.selected_program = row['listing_id']
+selected_w_
