@@ -2,6 +2,19 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 
+st.markdown("""
+<style>
+  /* 1) Pull in Inter from Google Fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+  /* 2) Force every Streamlit element to use it */
+  html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif !important;
+  }
+</style>
+""", unsafe_allow_html=True)
+
+
 # 1) Ensure our navigation flag exists
 if 'selected_program' not in st.session_state:
     st.session_state.selected_program = None
