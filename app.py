@@ -128,6 +128,14 @@ if apply_soon:
 def format_date(ts):
     return "" if pd.isna(ts) else ts.strftime("%B %-d, %Y")
 
+# Callback to select a program
+def _select_program(pid):
+    st.session_state.selected_program = pid
+
+# Callback to clear selection
+def _clear_selection():
+    st.session_state.selected_program = None
+
 # === Overview Page ===
 if st.session_state.selected_program is None:
     st.title("AmeriCorps Opportunities")
@@ -143,9 +151,12 @@ if st.session_state.selected_program is None:
         st.subheader(row['program_name'])
         st.write(f"State: {row['program_state'].title()}")
         st.write(f"Accepting Applications: {start} → {end}")
-        if st.button("Learn more", key=f"learn_{row['listing_id']}"):
-            st.session_state.selected_program = row['listing_id']
-            st.experimental_rerun()
+        st.button(
+            "Learn more",
+            key=f"learn_{row['listing_id']}",
+            on_click=_select_program,
+            args=(row['listing_id'],)
+        )
 
 # === Detail View with Tabs ===
 else:
@@ -153,9 +164,11 @@ else:
         filtered['listing_id'] == st.session_state.selected_program
     ].iloc[0]
 
-    if st.button("◀ Back to overview"):
-        st.session_state.selected_program = None
-        st.experimental_rerun()
+    # Back button
+    st.button(
+        "◀ Back to overview",
+        on_click=_clear_selection
+    )
 
     st.header(prog['program_name'])
 
