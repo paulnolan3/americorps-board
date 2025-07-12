@@ -5,7 +5,6 @@ from datetime import date, timedelta
 # === CSS for pills and Apply button ===
 st.markdown("""
 <style>
-  /* Service-area pills */
   .pill {
     display: inline-block;
     padding: 4px 10px;
@@ -15,7 +14,6 @@ st.markdown("""
     border-radius: 10px;
     font-size: 0.9em;
   }
-  /* Skills pills */
   .pill-skill {
     display: inline-block;
     padding: 4px 10px;
@@ -25,7 +23,6 @@ st.markdown("""
     border-radius: 10px;
     font-size: 0.9em;
   }
-  /* Outline-style “Apply Now” button */
   .apply-btn {
     border: 2px solid #1550ed;
     background-color: transparent;
@@ -44,7 +41,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# === Navigation state ===
+# === Session state for navigation ===
 if 'selected_program' not in st.session_state:
     st.session_state.selected_program = None
 
@@ -54,11 +51,10 @@ def load_data():
     df = pd.read_csv('americorps_listings_extracted.csv')
     for col in ['program_state','program_type','service_areas','skills','work_schedule','languages']:
         df[col] = (
-            df[col]
-              .fillna("")
-              .astype(str)
-              .str.replace(r"[\[\]']", "", regex=True)
-              .str.strip()
+            df[col].fillna("")
+                  .astype(str)
+                  .str.replace(r"[\[\]']", "", regex=True)
+                  .str.strip()
         )
     df['accept_start'] = pd.to_datetime(df['accept_start'], format='%m/%d/%Y', errors='coerce')
     df['accept_end']   = pd.to_datetime(df['accept_end'],   format='%m/%d/%Y', errors='coerce')
@@ -111,7 +107,7 @@ if apply_soon:
     today = date.today()
     cutoff = today + timedelta(days=14)
     filtered = filtered[
-        (filtered['accept_end'].dt.date >= today) &
+        (filtered['accept_end'].dt.date >= today) & 
         (filtered['accept_end'].dt.date <= cutoff)
     ]
 
@@ -127,6 +123,7 @@ if st.session_state.selected_program is None:
     for _, row in filtered.iterrows():
         start = format_date(row['accept_start'])
         end   = format_date(row['accept_end'])
+
         st.subheader(row['program_name'])
         st.write(f"State: {row['program_state'].title()}")
         st.write(f"Accepting Applications: {start} → {end}")
@@ -140,14 +137,13 @@ if st.session_state.selected_program is None:
 
 # === Detail View ===
 else:
-    prog = filtered.loc[filtered['listing_id']==st.session_state.selected_program].iloc[0]
+    prog = filtered.loc[filtered['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
 
-    # Program header with Apply button at top right
-    col1, col2 = st.columns([3,1])
+    # === Grid: 1/3 for header & apply, 2/3 for summary ===
+    col1, col2 = st.columns([1, 2])
     with col1:
         st.header(prog['program_name'])
-    with col2:
         url = (
             "https://my.americorps.gov/mp/listing/viewListing.do"
             f"?fromSearch=true&id={prog['listing_id']}"
@@ -156,32 +152,31 @@ else:
             f'<a href="{url}" target="_blank" class="apply-btn">📝 Apply Now</a>',
             unsafe_allow_html=True
         )
+    with col2:
+        state       = prog['program_state'].title()
+        raw_metro   = prog.get('metro_area', "")
+        metro_clean = "" if not raw_metro or pd.isna(raw_metro) else str(raw_metro).strip("[]' ")
+        location    = f"{state}, {metro_clean}" if metro_clean else state
+        start       = format_date(prog['accept_start'])
+        end         = format_date(prog['accept_end'])
+        age         = f"{prog['age_minimum']}+" if prog['age_minimum'] else "None"
 
-    # Summary box
-    state       = prog['program_state'].title()
-    raw_metro   = prog.get('metro_area', "")
-    metro_clean = "" if not raw_metro or pd.isna(raw_metro) else str(raw_metro).strip("[]' ")
-    location    = f"{state}, {metro_clean}" if metro_clean else state
-    start       = format_date(prog['accept_start'])
-    end         = format_date(prog['accept_end'])
-    age         = f"{prog['age_minimum']}+" if prog['age_minimum'] else "None"
+        st.markdown(f"""
+        **🗺 Location:** {location}  
+        **📅 Dates:** {start} – {end}  
+        **💼 Schedule:** {prog['work_schedule']}  
+        **🎓 Education:** {prog['education_level']}  
+        **✅ Age:** {age}
+        """, unsafe_allow_html=True)
 
-    st.markdown(f"""
-    **🗺 Location:** {location}  
-    **📅 Dates:** {start} – {end}  
-    **💼 Schedule:** {prog['work_schedule']}  
-    **🎓 Education:** {prog['education_level']}  
-    **✅ Age:** {age}
-    """)
-
-    # Tabs
+    # === Full-width Tabs ===
     tabs = st.tabs([
         "💬 Overview", "🛠 Duties", "💵 Benefits", "☑️ Terms",
         "📚 Skills", "🌐 Service Areas", "✉️ Contact"
     ])
 
     with tabs[0]:
-        st.write(prog.get('description',''))
+        st.write(prog.get('description', ''))
         st.write(f"**Listing ID:** {prog['listing_id']}")
 
     with tabs[1]:
