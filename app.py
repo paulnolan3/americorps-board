@@ -129,6 +129,18 @@ if st.session_state.get('selected_program'):
 # === Overview Page ===
 else:
     st.title("AmeriCorps Opportunities")
+
+    # ←— Add this
+    search_query = st.text_input("🔍 Search programs")
+
+    # Apply text filter if non-empty
+    if search_query:
+        filtered = filtered[
+            filtered['program_name']
+                    .str.contains(search_query, case=False, na=False)
+        ]
+
+    # Now render
     for _, row in filtered.iterrows():
         start = format_date(row['accept_start'])
         end   = format_date(row['accept_end'])
