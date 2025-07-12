@@ -2,13 +2,13 @@
 
 import streamlit as st
 import pandas as pd
+from datetime import date, timedelta
 
 @st.cache_data
 def load_data():
-    # Load raw CSV
     df = pd.read_csv('americorps_listings_extracted.csv')
 
-    # 1) Clean up any “['...']” strings into plain text
+    # Clean up “['...']” strings into plain text
     list_cols = [
         'program_state',
         'program_type',
@@ -20,27 +20,19 @@ def load_data():
     for col in list_cols:
         df[col] = (
             df[col]
-            .fillna("")                       # no NaN
-            .astype(str)                      # ensure string
-            .str.replace(r"[\[\]']", "", regex=True)  # remove [, ], '
+            .fillna("")
+            .astype(str)
+            .str.replace(r"[\[\]']", "", regex=True)
             .str.strip()
         )
 
-    # 2) Parse application dates
+    # Parse dates
     df['accept_start'] = pd.to_datetime(
-        df['accept_start'],
-        format='%m/%d/%Y',
-        errors='coerce'
+        df['accept_start'], format='%m/%d/%Y', errors='coerce'
     )
-    df['accept_end'] = pd.to_datetime(
-        df['accept_end'],
-        format='%m/%d/%Y',
-        errors='coerce'
+    df['accept_end']   = pd.to_datetime(
+        df['accept_end'],   format='%m/%d/%Y', errors='coerce'
     )
-
-    # 3) Add pure‐date columns for filtering
-    df['accept_start_date'] = df['accept_start'].dt.date
-    df['accept_end_date']   = df['accept_end'].dt.date
 
     return df
 
@@ -49,29 +41,33 @@ df = load_data()
 # === Sidebar Filters ===
 st.sidebar.header("Filters")
 
+# State filter
 state_options = sorted(df['program_state'].unique())
 states = st.sidebar.multiselect(
     "Program State",
     options=state_options,
-    default=state_options,
+    default=state_options
 )
 
-date_range = st.sidebar.date_input(
-    "Application Start Date Range",
-    value=[
-        df['accept_start_date'].min(),
-        df['accept_start_date'].max()
-    ]
+# New: upcoming deadline filter
+soon = st.sidebar.checkbox(
+    "Application deadline soon",
+    help="Deadline within the next two weeks"
 )
 
 # === Filter Data ===
-filtered = df[
-    df['program_state'].isin(states) &
-    (df['accept_start_date'] >= date_range[0]) &
-    (df['accept_start_date'] <= date_range[1])
-]
+filtered = df[df['program_state'].isin(states)]
 
-# Helper to format a pandas Timestamp as "Month Day, Year"
+if soon:
+    today  = date.today()
+    cutoff = today + timedelta(days=14)
+    # keep only those with accept_end within [today, cutoff]
+    filtered = filtered[
+        (filtered['accept_end'].dt.date >= today) &
+        (filtered['accept_end'].dt.date <= cutoff)
+    ]
+
+# Helper to format dates as "Month Day, Year"
 def format_date(ts):
     if pd.isna(ts):
         return ""
@@ -89,7 +85,6 @@ if st.session_state.get('selected_program'):
     st.header(prog['program_name'])
     for col in prog.index:
         val = prog[col]
-        # nicely format our dates
         if col in ("accept_start", "accept_end"):
             val = format_date(val)
         st.markdown(f"**{col.replace('_',' ').title()}:** {val}")
@@ -103,6 +98,5 @@ else:
         start = format_date(row['accept_start'])
         end   = format_date(row['accept_end'])
         st.write(f"**Applications:** {start} → {end}")
-
         if st.button("Learn more", key=row['listing_id']):
             st.session_state.selected_program = row['listing_id']
