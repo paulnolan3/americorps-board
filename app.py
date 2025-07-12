@@ -43,6 +43,7 @@ st.markdown("""
     border-radius: 8px;
     padding: 12px;
     background: #f9f9f9;
+    margin-bottom: 24px;
   }
 </style>
 """, unsafe_allow_html=True)
@@ -113,7 +114,7 @@ if apply_soon:
     today = date.today()
     cutoff = today + timedelta(days=14)
     filtered = filtered[
-        (filtered['accept_end'].dt.date >= today) & 
+        (filtered['accept_end'].dt.date >= today) &
         (filtered['accept_end'].dt.date <= cutoff)
     ]
 
@@ -170,13 +171,17 @@ else:
 
         st.markdown(f"""
         <div class="summary-card">
-          <p><strong>🗺 Location:</strong> {location}</p>
-          <p><strong>📅 Dates:</strong> {start} – {end}</p>
-          <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
-          <p><strong>🎓 Education:</strong> {prog['education_level']}</p>
-          <p><strong>✅ Age:</strong> {age}</p>
+          <h4 style="margin:0 0 8px;">Program Summary</h4>
+          <p style="margin:4px 0;"><strong>🗺 Location:</strong> {location}</p>
+          <p style="margin:4px 0;"><strong>📅 Dates:</strong> {start} – {end}</p>
+          <p style="margin:4px 0;"><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
+          <p style="margin:4px 0;"><strong>🎓 Education:</strong> {prog['education_level']}</p>
+          <p style="margin:4px 0;"><strong>✅ Age:</strong> {age}</p>
         </div>
         """, unsafe_allow_html=True)
+
+    # === Small gap before tabs ===
+    st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
 
     # === Full-width Tabs ===
     tabs = st.tabs([
