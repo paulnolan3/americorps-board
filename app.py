@@ -26,6 +26,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Mapping program types to URLs
+PROGRAM_TYPE_LINKS = {
+    "AmeriCorps NCCC": "https://www.americorps.gov/serve/americorps/americorps-nccc",
+    "AmeriCorps NCCC Team Leaders": "https://www.americorps.gov/serve/americorps/americorps-nccc",
+    "AmeriCorps State / National": "https://www.americorps.gov/serve/americorps/americorps-state-national",
+    "AmeriCorps VISTA": "https://www.americorps.gov/serve/americorps/americorps-vista",
+    "AmeriCorps VISTA Leaders": "https://www.americorps.gov/serve/americorps/americorps-vista"
+}
 
 @st.cache_data
 def load_data():
@@ -164,6 +172,14 @@ else:
     end      = format_date(prog['accept_end'])
     age      = f"{prog['age_minimum']}+" if prog['age_minimum'] else "None"
 
+    # Hyperlinked Program Type
+    pt = prog['program_type']
+    pt_url = PROGRAM_TYPE_LINKS.get(pt)
+    if pt_url:
+        pt_html = f'<a href="{pt_url}" target="_blank">{pt}</a>'
+    else:
+        pt_html = pt
+
     st.markdown(f"""
     <div style="
         border:1px solid #ddd;
@@ -176,7 +192,7 @@ else:
       <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
       <p><strong>🎓 Education:</strong> {prog['education_level']}</p>
       <p><strong>✅ Age:</strong> {age}</p>
-      <p><strong>📋 Program Type:</strong> {prog['program_type']}</p>
+      <p><strong>📋 Program Type:</strong> {pt_html}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -210,7 +226,7 @@ else:
     with tabs[3]:
         st.write(prog['terms'])
 
-    # Skills as pills with #112542
+    # Skills as pills
     with tabs[4]:
         skills = prog['skills'].split(',')
         skills_html = "".join(
