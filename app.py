@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 
-# === CSS for pills and Apply button ===
+# === CSS for pills, Apply button, and summary card ===
 st.markdown("""
 <style>
   .pill {
@@ -31,12 +31,18 @@ st.markdown("""
     border-radius: 4px;
     font-size: 1em;
     transition: background-color 0.2s, color 0.2s;
-    text-decoration: none;
+    text-decoration: none !important;
     cursor: pointer;
   }
   .apply-btn:hover {
     background-color: #1550ed;
     color: white;
+  }
+  .summary-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    background: #f9f9f9;
   }
 </style>
 """, unsafe_allow_html=True)
@@ -140,8 +146,8 @@ else:
     prog = filtered.loc[filtered['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
 
-    # === Grid: 1/3 for header & apply, 2/3 for summary ===
-    col1, col2 = st.columns([1, 2])
+    # === Two equal columns ===
+    col1, col2 = st.columns(2)
     with col1:
         st.header(prog['program_name'])
         url = (
@@ -152,6 +158,7 @@ else:
             f'<a href="{url}" target="_blank" class="apply-btn">📝 Apply Now</a>',
             unsafe_allow_html=True
         )
+
     with col2:
         state       = prog['program_state'].title()
         raw_metro   = prog.get('metro_area', "")
@@ -162,11 +169,13 @@ else:
         age         = f"{prog['age_minimum']}+" if prog['age_minimum'] else "None"
 
         st.markdown(f"""
-        **🗺 Location:** {location}  
-        **📅 Dates:** {start} – {end}  
-        **💼 Schedule:** {prog['work_schedule']}  
-        **🎓 Education:** {prog['education_level']}  
-        **✅ Age:** {age}
+        <div class="summary-card">
+          <p><strong>🗺 Location:</strong> {location}</p>
+          <p><strong>📅 Dates:</strong> {start} – {end}</p>
+          <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
+          <p><strong>🎓 Education:</strong> {prog['education_level']}</p>
+          <p><strong>✅ Age:</strong> {age}</p>
+        </div>
         """, unsafe_allow_html=True)
 
     # === Full-width Tabs ===
