@@ -5,9 +5,8 @@ from datetime import date, timedelta
 st.markdown("""
 <style>
   /* 1) Pull in Inter from Google Fonts */
-
-  @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Oswald:wght@200..700&display=swap');
-
+  @import url('https://fonts.googleapis.com/css2?family=My+Soul&family=Oswald:wght@200..700&display=swap');
+  
   /* 2) Force every Streamlit element to use it */
   html, body, [class*="css"] {
     font-family: 'Inter', sans-serif !important;
