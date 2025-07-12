@@ -3,17 +3,15 @@ import pandas as pd
 from datetime import date, timedelta
 
 st.markdown("""
+<!-- 1) Load Inter from Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  /* 1) Pull in Inter from Google Fonts */
-  @import url('https://fonts.googleapis.com/css2?family=My+Soul&family=Oswald:wght@200..700&display=swap');
-  
-  /* 2) Force every Streamlit element to use it */
-  html, body, [class*="css"] {
+  /* 2) Apply Inter to every element */
+  * {
     font-family: 'Inter', sans-serif !important;
   }
 </style>
 """, unsafe_allow_html=True)
-
 
 # 1) Ensure our navigation flag exists
 if 'selected_program' not in st.session_state:
