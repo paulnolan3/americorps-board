@@ -156,7 +156,7 @@ else:
             f"?fromSearch=true&id={prog['listing_id']}"
         )
         st.markdown(
-            f'<a href="{url}" target="_blank" class="apply-btn">📝 Apply Now</a>',
+            f'<a href="{url}" target="_blank" class="apply-btn">Apply Now</a>',
             unsafe_allow_html=True
         )
 
