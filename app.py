@@ -1,56 +1,59 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 
-# Sample data: Replace this with actual data loading logic later
-data = [
-    {
-        "Listing ID": "123584",
-        "Program": "The Landing Place - Rockland, Maine",
-        "Work Schedule": "Full Time",
-        "Program Locations": "MAINE",
-        "Member Duties": "Our AmeriCorps Fellow will create, facilitate, and evaluate a leadership program for TLP youth (ages 16-19) focusing on confidence, leadership, self-awareness, job readiness, community involvement, and civic understanding. Ideal candidates are team-driven, enthusiastic about youth and community engagement, and have an interest or understanding of strength-based approaches and authentic relationship building. The Fellow will incorporate trauma-informed care to counter adverse childhood experiences (ACEs) by increasing positive childhood experiences.",
-        "Skills": "Youth Development, Social Services, Teaching/Tutoring, First Aid, Education, Communications, Team Work, Leadership, General Skills, Community Organization, Conflict Resolution",
-        "Service Areas": "Public Health AmeriCorps, Housing, Children/Youth, Community Outreach, Education, Homelessness, Community and Economic Development",
-        "Terms": "Permits working at another job during off hours, Car recommended, Permits attendance at school during off hours",
-        "Program Benefits": "Living Allowance, Childcare assistance if eligible, Education award upon successful completion of service, Training, Health Coverage"
-    },
-    {
-        "Listing ID": "123702",
-        "Program": "WI Association and Runaway Services",
-        "Work Schedule": "Full Time",
-        "Program Locations": "WISCONSIN",
-        "Member Duties": "Make direct contact with homeless or at risk youth providing them with prevention materials, referral information and offering them healthy alternatives to life on the streets such as food vouchers, transportation vouchers, referrals for physical and mental health services and a safe long term living arrangements. Provide on site advocacy to runaways and mediation for families work with law enforcement to provide them with information on runaway services to promote referrals to runaway programs. Lead youth groups with the goal of providing prevention materials in order to promote access to program services; AOAD counseling, resume preparation, mental and physical healthcare referrals as needed and short term shelter. Increase community knowledge of issues facing runaways through presentations with the goal of promoting referrals.",
-        "Skills": "Counseling, Youth Development, Communications, Conflict Resolution, Community Outreach",
-        "Service Areas": "Homelessness, Community Outreach, Housing, Education, Children/Youth",
-        "Terms": "Uniforms provided and required",
-        "Program Benefits": "Childcare assistance if eligible, Training, Health Coverage, Education award upon successful completion of service, Living Allowance"
-    }
+@st.cache_data
+def load_data():
+    df = pd.read_csv('americorps_listings_extracted.csv')
+    df['accept_start'] = pd.to_datetime(df['accept_start'], format='%m/%d/%Y', errors='coerce')
+    df['accept_end'] = pd.to_datetime(df['accept_end'], format='%m/%d/%Y', errors='coerce')
+    return df
+
+df = load_data()
+
+# Initialize session state for selected program
+if 'selected_program' not in st.session_state:
+    st.session_state.selected_program = None
+
+# Sidebar filters
+st.sidebar.header("Filters")
+states = st.sidebar.multiselect(
+    "Program State",
+    options=sorted(df['program_state'].dropna().unique()),
+    default=sorted(df['program_state'].dropna().unique())
+)
+metros = st.sidebar.multiselect(
+    "Metro Area",
+    options=sorted(df['metro_area'].dropna().unique()),
+    default=sorted(df['metro_area'].dropna().unique())
+)
+date_range = st.sidebar.date_input(
+    "Application Start Date Range",
+    value=[df['accept_start'].min(), df['accept_start'].max()]
+)
+
+# Filter data
+filtered = df[
+    df['program_state'].isin(states) &
+    df['metro_area'].isin(metros) &
+    (df['accept_start'] >= pd.to_datetime(date_range[0])) &
+    (df['accept_start'] <= pd.to_datetime(date_range[1]))
 ]
 
-df = pd.DataFrame(data)
-
-st.set_page_config(page_title="AmeriCorps Service Opportunities", layout="wide")
-st.title("AmeriCorps Explorer")
-
-# Sidebar Filters
-with st.sidebar:
-    st.header("Filter Results")
-    states = st.multiselect("Location", options=df["Program Locations"].unique())
-    schedules = st.multiselect("Work Schedule", options=df["Work Schedule"].unique())
-
-# Apply filters
-filtered_df = df.copy()
-if states:
-    filtered_df = filtered_df[filtered_df["Program Locations"].isin(states)]
-if schedules:
-    filtered_df = filtered_df[filtered_df["Work Schedule"].isin(schedules)]
-
-# Display results
-if filtered_df.empty:
-    st.warning("No opportunities match your filters.")
+# Detail view
+if st.session_state.selected_program:
+    prog = filtered[filtered['listing_id'] == st.session_state.selected_program].iloc[0]
+    st.button("◀ Back to overview", on_click=lambda: st.session_state.update(selected_program=None))
+    st.header(prog['program_name'])
+    for col in prog.index:
+        st.markdown(f"**{col.replace('_', ' ').title()}:** {prog[col]}")
 else:
-    for _, row in filtered_df.iterrows():
-        with st.expander(row["Program"]):
-            for field in row.index:
-                if field != "Program":
-                    st.markdown(f"**{field}:** {row[field]}")
+    st.title("AmeriCorps Opportunities")
+    for _, row in filtered.iterrows():
+        st.subheader(row['program_name'])
+        st.write(f"**State:** {row['program_state']}")
+        if pd.notna(row['metro_area']):
+            st.write(f"**Metro:** {row['metro_area']}")
+        st.write(f"**Applications:** {row['accept_start'].date()} – {row['accept_end'].date()}")
+        if st.button("Learn more", key=row['listing_id']):
+            st.session_state.selected_program = row['listing_id']
