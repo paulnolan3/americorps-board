@@ -8,16 +8,15 @@ from datetime import date, timedelta
 def load_data():
     df = pd.read_csv('americorps_listings_extracted.csv')
 
-    # Clean up “['...']” strings into plain text
-    list_cols = [
+    # Clean list-style strings
+    for col in [
         'program_state',
         'program_type',
         'service_areas',
         'skills',
         'work_schedule',
         'languages'
-    ]
-    for col in list_cols:
+    ]:
         df[col] = (
             df[col]
             .fillna("")
@@ -33,7 +32,6 @@ def load_data():
     df['accept_end']   = pd.to_datetime(
         df['accept_end'],   format='%m/%d/%Y', errors='coerce'
     )
-
     return df
 
 df = load_data()
@@ -41,7 +39,6 @@ df = load_data()
 # === Sidebar Filters ===
 st.sidebar.header("Filters")
 
-# State filter
 state_options = sorted(df['program_state'].unique())
 states = st.sidebar.multiselect(
     "Program State",
@@ -49,25 +46,23 @@ states = st.sidebar.multiselect(
     default=state_options
 )
 
-# New: upcoming deadline filter
-soon = st.sidebar.checkbox(
-    "Application deadline soon",
+apply_soon = st.sidebar.checkbox(
+    "Apply soon",
     help="Deadline within the next two weeks"
 )
 
-# === Filter Data ===
+# === Filtering ===
 filtered = df[df['program_state'].isin(states)]
 
-if soon:
+if apply_soon:
     today  = date.today()
     cutoff = today + timedelta(days=14)
-    # keep only those with accept_end within [today, cutoff]
     filtered = filtered[
         (filtered['accept_end'].dt.date >= today) &
         (filtered['accept_end'].dt.date <= cutoff)
     ]
 
-# Helper to format dates as "Month Day, Year"
+# Helper to format dates
 def format_date(ts):
     if pd.isna(ts):
         return ""
@@ -89,14 +84,29 @@ if st.session_state.get('selected_program'):
             val = format_date(val)
         st.markdown(f"**{col.replace('_',' ').title()}:** {val}")
 
-# === Overview Page ===
+# === Overview Page (Cards) ===
 else:
     st.title("AmeriCorps Opportunities")
     for _, row in filtered.iterrows():
-        st.subheader(row['program_name'])
-        st.write(f"**State:** {row['program_state'].title()}")
         start = format_date(row['accept_start'])
         end   = format_date(row['accept_end'])
-        st.write(f"**Applications:** {start} → {end}")
-        if st.button("Learn more", key=row['listing_id']):
+
+        # Card container with light border/radius
+        st.markdown(
+            f"""
+            <div style="
+                border:1px solid #ddd;
+                border-radius:8px;
+                padding:12px;
+                margin-bottom:16px;
+            ">
+              <h4 style="margin:0;">{row['program_name']}</h4>
+              <p style="margin:4px 0;"><strong>State:</strong> {row['program_state'].title()}</p>
+              <p style="margin:4px 0;"><strong>Applications:</strong> {start} &rarr; {end}</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if st.button("Learn more", key=f"learn_{row['listing_id']}"):
             st.session_state.selected_program = row['listing_id']
