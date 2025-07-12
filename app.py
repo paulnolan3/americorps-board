@@ -131,7 +131,7 @@ else:
     st.title("AmeriCorps Opportunities")
 
     # ←— Add this
-    search_query = st.text_input("🔍 Search programs")
+    search_query = st.text_input("🔍 Search opportunities")
 
     # Apply text filter if non-empty
     if search_query:
