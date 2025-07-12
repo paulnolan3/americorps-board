@@ -10,9 +10,9 @@ st.markdown("""
   * {
     font-family: 'Nunito Sans', sans-serif !important;
   }
-  /* Tighten up just the headings by –15% relative to the font size */
+  /* Tighten up just the headings by –5% relative to the font size */
   h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.15em !important;
+    letter-spacing: -0.05em !important;
   }
 </style>
 """, unsafe_allow_html=True)
