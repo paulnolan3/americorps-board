@@ -2,7 +2,11 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 
-# Pill CSS for Service Areas and Skills
+# 1) Ensure our navigation flag exists
+if 'selected_program' not in st.session_state:
+    st.session_state.selected_program = None
+
+# 2) Pill CSS for Service Areas and Skills
 st.markdown("""
 <style>
   .pill {
@@ -26,7 +30,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Mapping program types to URLs
+# 3) Mapping for hyperlinked Program Type
 PROGRAM_TYPE_LINKS = {
     "AmeriCorps NCCC": "https://www.americorps.gov/serve/americorps/americorps-nccc",
     "AmeriCorps NCCC Team Leaders": "https://www.americorps.gov/serve/americorps/americorps-nccc",
@@ -125,7 +129,7 @@ def format_date(ts):
     return "" if pd.isna(ts) else ts.strftime("%B %-d, %Y")
 
 # === Overview Page ===
-if not st.session_state.get('selected_program'):
+if st.session_state.selected_program is None:
     st.title("AmeriCorps Opportunities")
     search_query = st.text_input("🔍 Search opportunities")
     if search_query:
@@ -139,8 +143,9 @@ if not st.session_state.get('selected_program'):
         st.subheader(row['program_name'])
         st.write(f"State: {row['program_state'].title()}")
         st.write(f"Accepting Applications: {start} → {end}")
-        if st.button("Learn more", key=row['listing_id']):
+        if st.button("Learn more", key=f"learn_{row['listing_id']}"):
             st.session_state.selected_program = row['listing_id']
+            st.experimental_rerun()
 
 # === Detail View with Tabs ===
 else:
