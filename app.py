@@ -159,6 +159,8 @@ else:
             f'<a href="{url}" target="_blank" class="apply-btn">Apply Now</a>',
             unsafe_allow_html=True
         )
+        # extra gap below Apply button
+        st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
 
     with col2:
         state       = prog['program_state'].title()
