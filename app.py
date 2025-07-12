@@ -155,6 +155,21 @@ else:
     prog = filtered.loc[filtered['listing_id']==st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
     st.header(prog['program_name'])
+
+    # Apply Now
+        url = (
+            "https://my.americorps.gov/mp/listing/viewListing.do"
+            f"?fromSearch=true&id={prog['listing_id']}"
+        )
+        st.markdown(
+            f'''
+            <a href="{url}" target="_blank" style="text-decoration:none">
+              <button class="apply-btn">📝 Apply Now</button>
+            </a>
+            ''',
+            unsafe_allow_html=True
+        )
+  
     # Summary card
     state      = prog['program_state'].title()
     raw_metro  = prog.get('metro_area', "")
@@ -187,20 +202,6 @@ else:
     with tabs[0]:
         st.write(prog.get('description',''))
         st.write(f"**Listing ID:** {prog['listing_id']}")
-        # Apply Now
-        url = (
-            "https://my.americorps.gov/mp/listing/viewListing.do"
-            f"?fromSearch=true&id={prog['listing_id']}"
-        )
-        st.markdown(
-            f'''
-            <a href="{url}" target="_blank" style="text-decoration:none">
-              <button class="apply-btn">📝 Apply Now</button>
-            </a>
-            ''',
-            unsafe_allow_html=True
-        )
-
     # Duties Tab
     with tabs[1]:
         st.write(prog['member_duties'])
