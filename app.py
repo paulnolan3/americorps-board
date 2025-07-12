@@ -39,11 +39,12 @@ df = load_data()
 # === Sidebar Filters ===
 st.sidebar.header("Filters")
 
-# Program State (multi-select)
+# Program State (multi-select, default empty = no filter)
+state_options = sorted(df['program_state'].unique())
 states = st.sidebar.multiselect(
     "Program State",
-    options=sorted(df['program_state'].unique()),
-    default=sorted(df['program_state'].unique())
+    options=state_options,
+    default=[]
 )
 
 # Education Level (multi-select, default empty = no filter)
@@ -59,7 +60,7 @@ EDU_OPTIONS = [
 educations = st.sidebar.multiselect(
     "Education Level",
     options=EDU_OPTIONS,
-    default=[]  # default to empty: show all
+    default=[]
 )
 
 # Work Schedule (checkboxes)
@@ -80,14 +81,13 @@ apply_soon = st.sidebar.checkbox(
 )
 
 # === Apply Filters ===
-# Start with all rows
 filtered = df.copy()
 
-# Filter by state
+# Filter by state only if selected
 if states:
     filtered = filtered[filtered['program_state'].isin(states)]
 
-# Filter by education only if user selected any
+# Filter by education only if selected
 if educations:
     filtered = filtered[filtered['education_level'].isin(educations)]
 
