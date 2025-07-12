@@ -2,16 +2,10 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 
-# === CSS for cards, pills, and buttons ===
+# === CSS for pills and buttons and cards ===
 st.markdown("""
 <style>
-  .overview-card {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 12px;
-    background: #f9f9f9;
-    margin-bottom: 20px;
-  }
+  /* Service-area pills */
   .pill {
     display: inline-block;
     padding: 4px 10px;
@@ -21,6 +15,7 @@ st.markdown("""
     border-radius: 10px;
     font-size: 0.9em;
   }
+  /* Skills pills */
   .pill-skill {
     display: inline-block;
     padding: 4px 10px;
@@ -30,8 +25,8 @@ st.markdown("""
     border-radius: 10px;
     font-size: 0.9em;
   }
+  /* Outline-style “Apply Now” button */
   .apply-btn {
-    display: inline-block;
     border: 2px solid #1550ed;
     background-color: transparent;
     color: #1550ed;
@@ -39,26 +34,35 @@ st.markdown("""
     border-radius: 4px;
     font-size: 1em;
     transition: background-color 0.2s, color 0.2s;
-    text-decoration: none;
     cursor: pointer;
   }
   .apply-btn:hover {
     background-color: #1550ed;
     color: white;
   }
+  /* Card for overview entries */
+  .overview-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    background: #f9f9f9;
+    margin-bottom: 20px;
+  }
 </style>
 """, unsafe_allow_html=True)
 
-# === Navigation via URL query parameter ===
+# === Session-state flag for navigation ===
 if 'selected_program' not in st.session_state:
     st.session_state.selected_program = None
 
-params = st.experimental_get_query_params()
-if 'listing_id' in params:
-    try:
-        st.session_state.selected_program = int(params['listing_id'][0])
-    except:
-        pass
+# === Program-type → URL mapping for hyperlinks ===
+PROGRAM_TYPE_LINKS = {
+    "AmeriCorps NCCC": "https://www.americorps.gov/serve/americorps/americorps-nccc",
+    "AmeriCorps NCCC Team Leaders": "https://www.americorps.gov/serve/americorps/americorps-nccc",
+    "AmeriCorps State / National": "https://www.americorps.gov/serve/americorps/americorps-state-national",
+    "AmeriCorps VISTA": "https://www.americorps.gov/serve/americorps/americorps-vista",
+    "AmeriCorps VISTA Leaders": "https://www.americorps.gov/serve/americorps/americorps-vista"
+}
 
 @st.cache_data
 def load_data():
@@ -120,6 +124,13 @@ if apply_soon:
 def format_date(ts):
     return "" if pd.isna(ts) else ts.strftime("%B %-d, %Y")
 
+# === Callbacks ===
+def select_program(pid):
+    st.session_state.selected_program = pid
+
+def clear_selection():
+    st.session_state.selected_program = None
+
 # === Overview View ===
 if st.session_state.selected_program is None:
     st.title("AmeriCorps Opportunities")
@@ -131,78 +142,91 @@ if st.session_state.selected_program is None:
     for _, row in filtered.iterrows():
         start = format_date(row['accept_start'])
         end   = format_date(row['accept_end'])
-        link  = f"?listing_id={row['listing_id']}"
+        # Card container
         st.markdown(f"""
         <div class="overview-card">
           <p><strong>{row['program_name']}</strong></p>
           <p>State: {row['program_state'].title()}</p>
           <p>Accepting Applications: {start} → {end}</p>
-          <a href="{link}" class="apply-btn">Learn more</a>
         </div>
         """, unsafe_allow_html=True)
+        st.button(
+            "Learn more",
+            key=f"learn_{row['listing_id']}",
+            on_click=select_program,
+            args=(row['listing_id'],)
+        )
 
 # === Detail View with Tabs ===
 else:
     prog = filtered.loc[filtered['listing_id']==st.session_state.selected_program].iloc[0]
-    if st.button("◀ Back to search"):
-        st.session_state.selected_program = None
-        st.experimental_set_query_params()
-        st.experimental_rerun()
-
+    st.button("◀ Back to search", on_click=clear_selection)
     st.header(prog['program_name'])
     # Summary card
-    state       = prog['program_state'].title()
-    raw_metro   = prog.get('metro_area', "")
-    metro_clean = "" if not raw_metro or pd.isna(raw_metro) else str(raw_metro).strip("[]' ")
-    location    = f"{state}, {metro_clean}" if metro_clean else state
-    start       = format_date(prog['accept_start'])
-    end         = format_date(prog['accept_end'])
-    age         = f"{prog['age_minimum']}+" if prog['age_minimum'] else "None"
+    state      = prog['program_state'].title()
+    raw_metro  = prog.get('metro_area', "")
+    metro_clean= "" if not raw_metro or pd.isna(raw_metro) else str(raw_metro).strip("[]' ")
+    location   = f"{state}, {metro_clean}" if metro_clean else state
+    start      = format_date(prog['accept_start'])
+    end        = format_date(prog['accept_end'])
+    age        = f"{prog['age_minimum']}+" if prog['age_minimum'] else "None"
+    pt         = prog['program_type']
+    pt_url     = PROGRAM_TYPE_LINKS.get(pt)
+    pt_html    = f'<a href="{pt_url}" target="_blank">{pt}</a>' if pt_url else pt
+
     st.markdown(f"""
-    <div class="overview-card">
+    <div style="border:1px solid #ddd;border-radius:8px;padding:12px;background:#f9f9f9;">
       <p><strong>🗺 Location:</strong> {location}</p>
       <p><strong>📅 Dates:</strong> {start} – {end}</p>
       <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
       <p><strong>🎓 Education:</strong> {prog['education_level']}</p>
       <p><strong>✅ Age:</strong> {age}</p>
+      <p><strong>📋 Program Type:</strong> {pt_html}</p>
     </div>
     """, unsafe_allow_html=True)
 
     # Tabs
-    tabs = st.tabs([
-        "💬 Overview", "🛠 Duties", "💵 Benefits", "☑️ Terms",
-        "📚 Skills", "🌐 Service Areas", "✉️ Contact"
-    ])
+    labels = [("Overview","💬"),("Duties","🛠"),("Benefits","💵"),("Terms","☑️"),
+              ("Skills","📚"),("Service Areas","🌐"),("Contact","✉️")]
+    tabs = st.tabs([f"{e} {l}" for l,e in labels])
 
+    # Overview Tab
     with tabs[0]:
         st.write(prog.get('description',''))
         st.write(f"**Listing ID:** {prog['listing_id']}")
+        # Apply Now
         url = (
             "https://my.americorps.gov/mp/listing/viewListing.do"
             f"?fromSearch=true&id={prog['listing_id']}"
         )
         st.markdown(
-            f'<a href="{url}" target="_blank" class="apply-btn">📝 Apply Now</a>',
+            f'''
+            <a href="{url}" target="_blank" style="text-decoration:none">
+              <button class="apply-btn">📝 Apply Now</button>
+            </a>
+            ''',
             unsafe_allow_html=True
         )
 
+    # Duties Tab
     with tabs[1]:
         st.write(prog['member_duties'])
+    # Benefits Tab
     with tabs[2]:
         st.write(prog['program_benefits'])
+    # Terms Tab
     with tabs[3]:
         st.write(prog['terms'])
+    # Skills Tab
     with tabs[4]:
         skills = [s.strip() for s in prog['skills'].split(',') if s.strip()]
-        st.markdown(
-            "".join(f'<span class="pill-skill">{s}</span>' for s in skills),
-            unsafe_allow_html=True
-        )
+        st.markdown("".join(f'<span class="pill-skill">{s}</span>' for s in skills),
+                    unsafe_allow_html=True)
+    # Service Areas Tab
     with tabs[5]:
         areas = [a.strip() for a in prog['service_areas'].split(',') if a.strip()]
-        st.markdown(
-            "".join(f'<span class="pill">{a}</span>' for a in areas),
-            unsafe_allow_html=True
-        )
+        st.markdown("".join(f'<span class="pill">{a}</span>' for a in areas),
+                    unsafe_allow_html=True)
+    # Contact Tab
     with tabs[6]:
         st.text(prog['contact'])
