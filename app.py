@@ -40,14 +40,6 @@ st.markdown("""
     background-color: #1550ed;
     color: white;
   }
-  /* Card for overview entries */
-  .overview-card {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 12px;
-    background: #f9f9f9;
-    margin-bottom: 20px;
-  }
 </style>
 """, unsafe_allow_html=True)
 
