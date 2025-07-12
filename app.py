@@ -2,21 +2,6 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 
-st.markdown("""
-<!-- Load Nunito Sans (or whatever font you’re using) -->
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@200;300;400;600;700;800&display=swap" rel="stylesheet">
-<style>
-  /* Apply Nunito Sans everywhere */
-  * {
-    font-family: 'Nunito Sans', sans-serif !important;
-  }
-  /* Tighten up just the headings by –5% relative to the font size */
-  h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.05em !important;
-  }
-</style>
-""", unsafe_allow_html=True)
-
 # 1) Ensure our navigation flag exists
 if 'selected_program' not in st.session_state:
     st.session_state.selected_program = None
