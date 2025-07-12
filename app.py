@@ -2,6 +2,22 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 
+# Pill CSS
+st.markdown("""
+<style>
+  .pill {
+    display: inline-block;
+    padding: 4px 10px;
+    margin: 2px 4px;
+    background-color: #1550ed;
+    color: white;
+    border-radius: 10px;
+    font-size: 0.9em;
+  }
+</style>
+""", unsafe_allow_html=True)
+
+
 @st.cache_data
 def load_data():
     df = pd.read_csv('americorps_listings_extracted.csv')
@@ -12,18 +28,18 @@ def load_data():
     ]:
         df[col] = (
             df[col]
-            .fillna("")
-            .astype(str)
-            .str.replace(r"[\[\]']", "", regex=True)
-            .str.strip()
+              .fillna("")
+              .astype(str)
+              .str.replace(r"[\[\]']", "", regex=True)
+              .str.strip()
         )
     # Parse date fields
-    df['accept_start'] = pd.to_datetime(df['accept_start'],
-                                        format='%m/%d/%Y',
-                                        errors='coerce')
-    df['accept_end']   = pd.to_datetime(df['accept_end'],
-                                        format='%m/%d/%Y',
-                                        errors='coerce')
+    df['accept_start'] = pd.to_datetime(
+        df['accept_start'], format='%m/%d/%Y', errors='coerce'
+    )
+    df['accept_end']   = pd.to_datetime(
+        df['accept_end'],   format='%m/%d/%Y', errors='coerce'
+    )
     return df
 
 df = load_data()
@@ -124,21 +140,20 @@ else:
     # Summary card
     state = prog['program_state'].title()
     raw_metro = prog.get('metro_area', "")
-    # if it's NaN or empty, drop it; otherwise coerce to str and clean up
     if pd.isna(raw_metro) or raw_metro == "":
         metro_clean = ""
     else:
-        metro_clean = str(raw_metro).replace("[", "").replace("]", "").replace("'", "").strip()
-
+        metro_clean = (
+            str(raw_metro)
+            .replace("[", "")
+            .replace("]", "")
+            .replace("'", "")
+            .strip()
+        )
     location = f"{state}, {metro_clean}" if metro_clean else state
-
-    start = format_date(prog['accept_start'])
-    end   = format_date(prog['accept_end'])
-    age   = f"{prog['age_minimum']}+" if prog['age_minimum'] else "None"
-    summary_sentence = (
-        prog.get('description', '').split('.')[0] + '.'
-        if prog.get('description') else ''
-    )
+    start    = format_date(prog['accept_start'])
+    end      = format_date(prog['accept_end'])
+    age      = f"{prog['age_minimum']}+" if prog['age_minimum'] else "None"
 
     st.markdown(f"""
     <div style="
@@ -151,29 +166,27 @@ else:
       <p><strong>📅 Dates:</strong> {start} – {end}</p>
       <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
       <p><strong>🎓 Education:</strong> {prog['education_level']}</p>
-      <p><strong>🧓 Age:</strong> {age}</p>
+      <p><strong>✅ Age:</strong> {age}</p>
       <p><strong>📋 Program Type:</strong> {prog['program_type']}</p>
-
-      <p><em>{summary_sentence}</em></p>
     </div>
     """, unsafe_allow_html=True)
 
     # Tabs
     tab_labels = [
         ("Overview", "💬"),
-        ("Duties", "🛠"),
-        ("Benefits", "💰"),
-        ("Terms", "🧠"),
-        ("Skills", "📚"),
+        ("Duties",    "🛠"),
+        ("Benefits",  "💵"),
+        ("Terms",     "☑️"),
+        ("Skills",    "📚"),
         ("Service Areas", "🌐"),
-        ("Contact", "✉️"),
-        ("Apply", "📝")
+        ("Contact",   "✉️"),
+        ("Apply",     "📝")
     ]
     tabs = st.tabs([f"{emoji} {label}" for label, emoji in tab_labels])
 
-    # Overview Tab
+    # Overview
     with tabs[0]:
-        st.write(prog.get('description',''))
+        st.write(prog.get('description', ''))
         st.write(f"**Listing ID:** {prog['listing_id']}")
 
     # Duties
@@ -192,9 +205,14 @@ else:
     with tabs[4]:
         st.write(prog['skills'])
 
-    # Service Areas
+    # Service Areas as pills
     with tabs[5]:
-        st.write(prog['service_areas'])
+        areas = prog['service_areas'].split(',')
+        pills_html = "".join(
+            f'<span class="pill">{area.strip()}</span>'
+            for area in areas if area.strip()
+        )
+        st.markdown(pills_html, unsafe_allow_html=True)
 
     # Contact
     with tabs[6]:
