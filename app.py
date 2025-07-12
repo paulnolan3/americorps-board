@@ -122,14 +122,16 @@ else:
     st.header(prog['program_name'])
 
     # Summary card
-    location = prog['program_state'].title()
-    if 'metro_area' in prog and prog['metro_area']:
-        location += f", {prog['metro_area']}"
+    state = prog['program_state'].title()
+    metro_raw = prog.get('metro_area', "")
+    metro_clean = metro_raw.replace("[", "").replace("]", "").replace("'", "").strip()
+    location = f"{state}, {metro_clean}" if metro_clean else state
+
     start = format_date(prog['accept_start'])
     end   = format_date(prog['accept_end'])
-    age   = f"{prog['age_minimum']}+" if prog['age_minimum'] else "N/A"
+    age   = f"{prog['age_minimum']}+" if prog['age_minimum'] else "None"
     summary_sentence = (
-        prog.get('description','').split('.')[0] + '.'
+        prog.get('description', '').split('.')[0] + '.'
         if prog.get('description') else ''
     )
 
@@ -140,14 +142,14 @@ else:
         padding:12px;
         background:#f9f9f9;
     ">
-    **🗺 Location:** {location}  &nbsp;  
-    **📅 Dates:** {start} – {end}  &nbsp;  
-    **💼 Schedule:** {prog['work_schedule']}  &nbsp;  
-    **🎓 Education:** {prog['education_level']}  &nbsp;  
-    **🧓 Age:** {age}  &nbsp;  
-    **📋 Program Type:** {prog['program_type']}  
+      <p><strong>🗺 Location:</strong> {location}</p>
+      <p><strong>📅 Dates:</strong> {start} – {end}</p>
+      <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
+      <p><strong>🎓 Education:</strong> {prog['education_level']}</p>
+      <p><strong>🧓 Age:</strong> {age}</p>
+      <p><strong>📋 Program Type:</strong> {prog['program_type']}</p>
 
-    _{summary_sentence}_
+      <p><em>{summary_sentence}</em></p>
     </div>
     """, unsafe_allow_html=True)
 
