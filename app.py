@@ -123,8 +123,13 @@ else:
 
     # Summary card
     state = prog['program_state'].title()
-    metro_raw = prog.get('metro_area', "")
-    metro_clean = metro_raw.replace("[", "").replace("]", "").replace("'", "").strip()
+    raw_metro = prog.get('metro_area', "")
+    # if it's NaN or empty, drop it; otherwise coerce to str and clean up
+    if pd.isna(raw_metro) or raw_metro == "":
+        metro_clean = ""
+    else:
+        metro_clean = str(raw_metro).replace("[", "").replace("]", "").replace("'", "").strip()
+
     location = f"{state}, {metro_clean}" if metro_clean else state
 
     start = format_date(prog['accept_start'])
