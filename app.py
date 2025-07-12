@@ -1,5 +1,3 @@
-# app.py
-
 import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
@@ -39,10 +37,10 @@ df = load_data()
 # === Sidebar Filters ===
 st.sidebar.header("Filters")
 
-# Program State (multi-select, default empty = no filter)
+# State or Territory (multi-select, default empty = no filter)
 state_options = sorted(df['program_state'].unique())
 states = st.sidebar.multiselect(
-    "Program State",
+    "State or Territory",
     options=state_options,
     default=[]
 )
@@ -80,22 +78,25 @@ apply_soon = st.sidebar.checkbox(
     help="Deadline within the next two weeks"
 )
 
+# Disclaimer
+st.sidebar.markdown("---")
+st.sidebar.markdown(
+    "This app is not an official government website nor endorsed by AmeriCorps. "
+    "It is built with love by an AmeriCorps Alum to improve the search process."
+)
+
 # === Apply Filters ===
 filtered = df.copy()
 
-# Filter by state only if selected
 if states:
     filtered = filtered[filtered['program_state'].isin(states)]
 
-# Filter by education only if selected
 if educations:
     filtered = filtered[filtered['education_level'].isin(educations)]
 
-# Filter by work schedule
 if selected_work:
     filtered = filtered[filtered['work_schedule'].isin(selected_work)]
 
-# Filter by upcoming deadlines
 if apply_soon:
     today, cutoff = date.today(), date.today() + timedelta(days=14)
     filtered = filtered[
