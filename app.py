@@ -3,12 +3,16 @@ import pandas as pd
 from datetime import date, timedelta
 
 st.markdown("""
-<!-- 1) Load Nunito Sans from Google Fonts -->
+<!-- Load Nunito Sans (or whatever font you’re using) -->
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@200;300;400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* 2) Apply Nunito Sans everywhere */
+  /* Apply Nunito Sans everywhere */
   * {
     font-family: 'Nunito Sans', sans-serif !important;
+  }
+  /* Tighten up just the headings by –15% relative to the font size */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.15em !important;
   }
 </style>
 """, unsafe_allow_html=True)
