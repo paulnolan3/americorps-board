@@ -1,3 +1,5 @@
+# app.py
+
 import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
@@ -37,15 +39,14 @@ df = load_data()
 # === Sidebar Filters ===
 st.sidebar.header("Filters")
 
-# Program State
-state_options = sorted(df['program_state'].unique())
+# Program State (multi-select)
 states = st.sidebar.multiselect(
     "Program State",
-    options=state_options,
-    default=state_options
+    options=sorted(df['program_state'].unique()),
+    default=sorted(df['program_state'].unique())
 )
 
-# Education Level (single-select)
+# Education Level (multi-select, default empty = no filter)
 EDU_OPTIONS = [
     "Less than High school",
     "Technical school / apprenticeship / vocational",
@@ -55,9 +56,10 @@ EDU_OPTIONS = [
     "College graduate",
     "Graduate degree (e.g. MA, PhD, MD, JD)"
 ]
-education = st.sidebar.selectbox(
+educations = st.sidebar.multiselect(
     "Education Level",
-    options=EDU_OPTIONS
+    options=EDU_OPTIONS,
+    default=[]  # default to empty: show all
 )
 
 # Work Schedule (checkboxes)
@@ -78,15 +80,24 @@ apply_soon = st.sidebar.checkbox(
 )
 
 # === Apply Filters ===
-filtered = df[
-    df['program_state'].isin(states) &
-    (df['education_level'] == education) &
-    df['work_schedule'].isin(selected_work)
-]
+# Start with all rows
+filtered = df.copy()
 
+# Filter by state
+if states:
+    filtered = filtered[filtered['program_state'].isin(states)]
+
+# Filter by education only if user selected any
+if educations:
+    filtered = filtered[filtered['education_level'].isin(educations)]
+
+# Filter by work schedule
+if selected_work:
+    filtered = filtered[filtered['work_schedule'].isin(selected_work)]
+
+# Filter by upcoming deadlines
 if apply_soon:
-    today  = date.today()
-    cutoff = today + timedelta(days=14)
+    today, cutoff = date.today(), date.today() + timedelta(days=14)
     filtered = filtered[
         (filtered['accept_end'].dt.date >= today) &
         (filtered['accept_end'].dt.date <= cutoff)
