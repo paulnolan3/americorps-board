@@ -3,12 +3,12 @@ import pandas as pd
 from datetime import date, timedelta
 
 st.markdown("""
-<!-- 1) Load Inter from Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- 1) Load Nunito Sans from Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@200;300;400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* 2) Apply Inter to every element */
+  /* 2) Apply Nunito Sans everywhere */
   * {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Nunito Sans', sans-serif !important;
   }
 </style>
 """, unsafe_allow_html=True)
