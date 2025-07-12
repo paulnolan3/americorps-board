@@ -29,7 +29,6 @@ st.markdown("""
     color: #1550ed;
     padding: 8px 16px;
     border-radius: 9999px;
-    margin-bottom: 16px;
     font-size: 1em;
     transition: background-color 0.2s, color 0.2s;
     text-decoration: none !important;
