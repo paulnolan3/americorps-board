@@ -129,25 +129,26 @@ if st.session_state.selected_program is None:
     search_query = st.text_input("🔍 Search opportunities")
     if search_query:
         filtered = filtered[
-            filtered['program_name'].str.contains(search_query, case=False, na=False)
+            filtered['program_name']
+                    .str.contains(search_query, case=False, na=False)
         ]
+
     for _, row in filtered.iterrows():
         start = format_date(row['accept_start'])
         end   = format_date(row['accept_end'])
-        # Card container
-        st.markdown(f"""
-        <div class="overview-card">
-          <p><strong>{row['program_name']}</strong></p>
-          <p>State: {row['program_state'].title()}</p>
-          <p>Accepting Applications: {start} → {end}</p>
-        </div>
-        """, unsafe_allow_html=True)
+
+        st.subheader(row['program_name'])
+        st.write(f"State: {row['program_state'].title()}")
+        st.write(f"Accepting Applications: {start} → {end}")
         st.button(
             "Learn more",
             key=f"learn_{row['listing_id']}",
             on_click=select_program,
             args=(row['listing_id'],)
         )
+
+        # ←— add a visual separator here
+        st.divider()            # or: st.markdown("---")
 
 # === Detail View with Tabs ===
 else:
