@@ -10,7 +10,6 @@ def load_data():
     # Clean up list‐style strings into plain text
     for col in [
         'program_state',
-        'metro_area',
         'program_type',
         'service_areas',
         'skills',
@@ -19,8 +18,8 @@ def load_data():
     ]:
         df[col] = (
             df[col]
-            .fillna("")                   # avoid NaN
-            .astype(str)                  # ensure string
+            .fillna("")                   
+            .astype(str)                  
             .str.replace(r"[\[\]']", "", regex=True)
             .str.strip()
         )
@@ -36,20 +35,13 @@ def load_data():
 
 df = load_data()
 
-# Sidebar filters
+# Sidebar filters (remove Metro Area)
 st.sidebar.header("Filters")
 state_options = sorted(df['program_state'].unique())
-metro_options = sorted([m for m in df['metro_area'].unique() if m])
-
 states = st.sidebar.multiselect(
     "Program State",
     options=state_options,
     default=state_options
-)
-metros = st.sidebar.multiselect(
-    "Metro Area",
-    options=metro_options,
-    default=metro_options
 )
 date_range = st.sidebar.date_input(
     "Application Start Date Range",
@@ -59,32 +51,25 @@ date_range = st.sidebar.date_input(
 # Filter DataFrame
 filtered = df[
     df['program_state'].isin(states) &
-    df['metro_area'].isin(metros) &
     (df['accept_start'] >= pd.to_datetime(date_range[0])) &
     (df['accept_start'] <= pd.to_datetime(date_range[1]))
 ]
 
+# Helper to format dates
+def fmt_dt(dt):
+    if pd.isna(dt):
+        return ""
+    return dt.strftime("%B %-d, %Y")  # e.g. "March 7, 2025"
+
 # Detail view
-if 'selected_program' in st.session_state and st.session_state.selected_program:
+if st.session_state.get('selected_program'):
     prog = filtered.loc[
         filtered['listing_id'] == st.session_state.selected_program
     ].iloc[0]
     if st.button("◀ Back to overview"):
         st.session_state.selected_program = None
+
     st.header(prog['program_name'])
     for col in prog.index:
         val = prog[col]
-        if isinstance(val, str):
-            st.markdown(f"**{col.replace('_',' ').title()}:** {val}")
-        else:
-            st.markdown(f"**{col.replace('_',' ').title()}:** {val}")
-else:
-    st.title("AmeriCorps Opportunities")
-    for _, row in filtered.iterrows():
-        st.subheader(row['program_name'])
-        st.write(f"**State:** {row['program_state'].title()}")
-        if row['metro_area']:
-            st.write(f"**Metro:** {row['metro_area'].title()}")
-        st.write(f"**Applications:** {row['accept_start'].date()} → {row['accept_end'].date()}")
-        if st.button("Learn more", key=row['listing_id']):
-            st.session_state.selected_program = row['listing_id']
+        # format our t
