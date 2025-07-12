@@ -53,4 +53,4 @@ if st.session_state.get('selected_program'):
         val = prog[col]
         if isinstance(val, list):
             val = ", ".join(val).title()
-        st.markdown(f"**{col.replace('_',' ').title()}:_**
+        st.markdown(f"**{col.replace('_',' ').title()}:** {val}")
