@@ -238,16 +238,17 @@ else:
     st.subheader("You might also like…")
 
     def get_similarity_score(target, row):
-        score = 0
-        target_skills = set(s.strip().lower() for s in str(target['skills']).split(',') if s.strip())
-        row_skills = set(s.strip().lower() for s in str(row['skills']).split(',') if s.strip())
-        score += len(target_skills.intersection(row_skills))
+    target_skills = set(s.strip().lower() for s in str(target['skills']).split(',') if s.strip())
+    row_skills = set(s.strip().lower() for s in str(row['skills']).split(',') if s.strip())
+    skill_overlap = len(target_skills.intersection(row_skills))
 
-        target_areas = set(a.strip().lower() for a in str(target['service_areas']).split(',') if a.strip())
-        row_areas = set(a.strip().lower() for a in str(row['service_areas']).split(',') if a.strip())
-        score += len(target_areas.intersection(row_areas))
+    target_areas = set(a.strip().lower() for a in str(target['service_areas']).split(',') if a.strip())
+    row_areas = set(a.strip().lower() for a in str(row['service_areas']).split(',') if a.strip())
+    area_overlap = len(target_areas.intersection(row_areas))
 
-        return score
+    # Normalize to max of 10 points
+    raw_score = skill_overlap + area_overlap
+    return min(raw_score, 10)
 
     today = date.today()
     similar_df = df.copy()
@@ -265,8 +266,6 @@ else:
         with st.container():
             st.markdown(f"**{sim['program_name']}**")
             st.caption(f"Similarity Score: {sim['similarity']}/10")
-            st.markdown(f"State: {sim['program_state'].title()}  ")
-            st.markdown(f"Accepting Applications: {format_date(sim['accept_start'])} → {format_date(sim['accept_end'])}")
-            st.button("Learn more", key=f"similar_{sim['listing_id']}", on_click=select_program, args=(sim['listing_id'],))
+                        st.button("Learn more", key=f"similar_{sim['listing_id']}", on_click=select_program, args=(sim['listing_id'],))
             st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
             st.markdown("---")
