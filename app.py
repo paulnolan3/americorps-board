@@ -203,8 +203,8 @@ else:
         st.markdown(f"""
         <div class="summary-card">
           <h4 style="margin:0 0 8px;">Program Summary</h4>
-          <p><strong>🗺 Location:</strong> {location}</p>
-          <p><strong>📅 Dates:</strong> {start} – {end}</p>
+          <p><strong>📺 Location:</strong> {location}</p>
+          <p><strong>🗕 Dates:</strong> {start} – {end}</p>
           <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
           <p><strong>🎓 Education:</strong> {prog['education_level']}</p>
           <p><strong>✅ Age:</strong> {age}</p>
@@ -231,3 +231,32 @@ else:
         st.markdown("".join(f'<span class="pill">{a}</span>' for a in areas), unsafe_allow_html=True)
     with tabs[6]:
         st.text(prog['contact'])
+
+    # === Similar Listings ===
+    st.markdown("### 🔁 Similar Listings")
+
+    def get_similarity_score(base, other):
+        if base['work_schedule'] != other['work_schedule']:
+            return 0
+        base_areas = set(a.strip() for a in str(base['service_areas']).split(',') if a.strip())
+        other_areas = set(a.strip() for a in str(other['service_areas']).split(',') if a.strip())
+        base_skills = set(s.strip() for s in str(base['skills']).split(',') if s.strip())
+        other_skills = set(s.strip() for s in str(other['skills']).split(',') if s.strip())
+        shared_areas = len(base_areas & other_areas)
+        shared_skills = len(base_skills & other_skills)
+        return shared_areas * 3 + shared_skills * 1
+
+    others = df[df['listing_id'] != prog['listing_id']].copy()
+    others['similarity_score'] = others.apply(lambda row: get_similarity_score(prog, row), axis=1)
+    top_similar = others[others['similarity_score'] > 0].sort_values(by='similarity_score', ascending=False).head(3)
+
+    if top_similar.empty:
+        st.write("No similar listings found.")
+    else:
+        for _, row in top_similar.iterrows():
+            st.subheader(row['program_name'])
+            st.write(f"**Location:** {row['program_state']}")
+            st.write(f"**Schedule:** {row['work_schedule']}")
+            st.write(f"**Similarity Score:** {row['similarity_score']}")
+            st.button("View Listing", key=f"similar_{row['listing_id']}", on_click=select_program, args=(row['listing_id'],))
+            st.divider()
