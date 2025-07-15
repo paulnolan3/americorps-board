@@ -158,7 +158,7 @@ if st.session_state.selected_program is None:
         st.divider()
 
     # === Pagination Controls ===
-    col1, col2, col3 = st.columns([1,2,1])
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         if st.session_state.page_number > 0:
             st.button("◀ Previous", on_click=go_prev)
@@ -173,7 +173,7 @@ else:
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
 
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([1, 1])
     with col1:
         st.header(prog['program_name'])
         url = f"https://my.americorps.gov/mp/listing/viewListing.do?fromSearch=true&id={prog['listing_id']}"
