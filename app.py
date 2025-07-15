@@ -1,5 +1,3 @@
-Streamlit Explorer v3
-
 import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
