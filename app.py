@@ -116,19 +116,6 @@ if st.session_state.selected_program is None:
     st.title("AmeriCorps Explorer")
 
     # === Filter Listings ===
-    filtered = df.copy()
-    if states:
-        filtered = filtered[filtered['program_state'].isin(states)]
-    if educations:
-        filtered = filtered[filtered['education_level'].isin(educations)]
-    if selected_work:
-        filtered = filtered[filtered['work_schedule'].isin(selected_work)]
-    if apply_soon:
-        today = date.today()
-        cutoff = today + timedelta(days=14)
-        filtered = filtered[(filtered['accept_end'].dt.date >= today) & (filtered['accept_end'].dt.date <= cutoff)]
-
-    # === Randomize Only If No Filters/Search Applied ===
     apply_filters = any([
         states,
         educations,
@@ -136,19 +123,10 @@ if st.session_state.selected_program is None:
         apply_soon,
         st.session_state.search_query.strip() != ""
     ])
-    if not apply_filters:
-        filtered = filtered.sample(frac=1).reset_index(drop=True)
 
-
-    apply_filters = any([
-        states,
-        educations,
-        len(selected_work) < 3,
-        apply_soon,
-        st.session_state.search_query.strip() != ""
-    ])
     if not apply_filters:
-        filtered = filtered.sample(frac=1).reset_index(drop=True)  # Shuffle if no filters applied
+        df = df.sample(frac=1).reset_index(drop=True)
+
     filtered = df.copy()
     if states:
         filtered = filtered[filtered['program_state'].isin(states)]
