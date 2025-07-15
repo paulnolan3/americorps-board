@@ -251,6 +251,7 @@ else:
     raw_score = skill_overlap + area_overlap
     return min(raw_score, 10)
 
+
     today = date.today()
     similar_df = df.copy()
     similar_df = similar_df[
