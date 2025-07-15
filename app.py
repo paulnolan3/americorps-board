@@ -90,11 +90,8 @@ educations = st.sidebar.multiselect("Education Level", [
 st.sidebar.markdown("**Work Schedule**")
 selected_work = [opt for opt in ["Full Time", "Part Time", "Summer"] if st.sidebar.checkbox(opt, value=True)]
 st.sidebar.markdown("---")
-st.sidebar.markdown("Apply soon [:question:](https://example.com)", help="Deadline in the next two weeks")
-apply_soon = st.sidebar.checkbox("Apply soon")
+apply_soon = st.sidebar.checkbox("Apply soon", help="Deadline in the next two weeks")
 st.sidebar.markdown("---")
-service_tags = ["Education", "Disaster Relief", "Environment", "Health", "Veterans"]
-selected_tags = st.sidebar.multiselect("Service Areas", service_tags)
 
 # === Main View ===
 if st.session_state.selected_program is None:
@@ -114,15 +111,13 @@ if st.session_state.selected_program is None:
         filtered = filtered[(filtered['accept_end'].dt.date >= today) & (filtered['accept_end'].dt.date <= cutoff)]
 
     # === Count Display ===
-    st.markdown(f"### <span class='pill'>{len(filtered)}</span> opportunities to serve.", unsafe_allow_html=True)
+    st.markdown(f"### There are <span class='pill'>{len(filtered)}</span> opportunities to serve.", unsafe_allow_html=True)
     search_query = st.text_input("🔍 Search opportunities")
     if search_query:
         query = search_query.lower()
         filtered = filtered[filtered.apply(lambda row: any(query in str(row[fld]).lower() for fld in [
             'program_name','description','member_duties','program_benefits','skills','service_areas'
         ]), axis=1)]
-    if selected_tags:
-        filtered = filtered[filtered['service_areas'].apply(lambda sa: any(tag in sa for tag in selected_tags))]
 
     # === Display Listings ===
     for _, row in filtered.iterrows():
