@@ -141,7 +141,11 @@ if st.session_state.selected_program is None:
 
     # === Count Display ===
     st.markdown(f"### There are <span class='pill'>{len(filtered)}</span>opportunities to serve.", unsafe_allow_html=True)
-    search_query = st.text_input("🔍 Search opportunities", value=st.session_state.search_query)
+    search_query = st.text_input(
+        "Search opportunities by name, service area, or skill",
+        value=st.session_state.search_query,
+        placeholder="community outreach, veterans, teaching"
+    )
     if search_query != st.session_state.search_query:
         st.session_state.search_query = search_query
         st.session_state.page_number = 0
