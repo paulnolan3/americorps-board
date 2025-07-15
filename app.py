@@ -87,16 +87,18 @@ educations = st.sidebar.multiselect("Education Level", [
     "High school diploma/GED", "Some college", "Associates degree (AA)",
     "College graduate", "Graduate degree (e.g. MA, PhD, MD, JD)"
 ])
+st.sidebar.markdown("**Work Schedule**")
 selected_work = [opt for opt in ["Full Time", "Part Time", "Summer"] if st.sidebar.checkbox(opt, value=True)]
-apply_soon = st.sidebar.checkbox("Apply soon (Deadline in next 2 weeks)")
+st.sidebar.markdown("---")
+st.sidebar.markdown("Apply soon [:question:](https://example.com)", help="Deadline in the next two weeks")
+apply_soon = st.sidebar.checkbox("Apply soon")
+st.sidebar.markdown("---")
 service_tags = ["Education", "Disaster Relief", "Environment", "Health", "Veterans"]
 selected_tags = st.sidebar.multiselect("Service Areas", service_tags)
 
 # === Main View ===
 if st.session_state.selected_program is None:
     st.title("AmeriCorps Explorer")
-
-    search_query = st.text_input("🔍 Search opportunities")
 
     # === Filter Listings ===
     filtered = df.copy()
@@ -110,6 +112,10 @@ if st.session_state.selected_program is None:
         today = date.today()
         cutoff = today + timedelta(days=14)
         filtered = filtered[(filtered['accept_end'].dt.date >= today) & (filtered['accept_end'].dt.date <= cutoff)]
+
+    # === Count Display ===
+    st.markdown(f"### <span class='pill'>{len(filtered)}</span> opportunities to serve.", unsafe_allow_html=True)
+    search_query = st.text_input("🔍 Search opportunities")
     if search_query:
         query = search_query.lower()
         filtered = filtered[filtered.apply(lambda row: any(query in str(row[fld]).lower() for fld in [
@@ -117,9 +123,6 @@ if st.session_state.selected_program is None:
         ]), axis=1)]
     if selected_tags:
         filtered = filtered[filtered['service_areas'].apply(lambda sa: any(tag in sa for tag in selected_tags))]
-
-    # === Count Display ===
-    st.markdown(f"### There are {len(filtered)} opportunities to serve.")
 
     # === Display Listings ===
     for _, row in filtered.iterrows():
