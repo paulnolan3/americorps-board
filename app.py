@@ -51,6 +51,11 @@ st.markdown("""
 # === Session State ===
 if 'selected_program' not in st.session_state:
     st.session_state.selected_program = None
+if 'page_number' not in st.session_state:
+    st.session_state.page_number = 0
+
+# === Constants ===
+RESULTS_PER_PAGE = 20
 
 # === Data Loader ===
 @st.cache_data
@@ -75,6 +80,13 @@ def select_program(pid):
 
 def clear_selection():
     st.session_state.selected_program = None
+
+def go_next():
+    st.session_state.page_number += 1
+
+def go_prev():
+    if st.session_state.page_number > 0:
+        st.session_state.page_number -= 1
 
 # === Load Data ===
 df = load_data()
@@ -119,8 +131,14 @@ if st.session_state.selected_program is None:
             'program_name','description','member_duties','program_benefits','skills','service_areas'
         ]), axis=1)]
 
+    # === Pagination Logic ===
+    total_pages = max(1, (len(filtered) - 1) // RESULTS_PER_PAGE + 1)
+    start_idx = st.session_state.page_number * RESULTS_PER_PAGE
+    end_idx = start_idx + RESULTS_PER_PAGE
+    visible_listings = filtered.iloc[start_idx:end_idx]
+
     # === Display Listings ===
-    for _, row in filtered.iterrows():
+    for _, row in visible_listings.iterrows():
         st.subheader(row['program_name'])
         st.write(f"State: {row['program_state'].title()}")
         start = format_date(row['accept_start'])
@@ -128,6 +146,17 @@ if st.session_state.selected_program is None:
         st.write(f"Accepting Applications: {start} → {end}")
         st.button("Learn more", key=f"learn_{row['listing_id']}", on_click=select_program, args=(row['listing_id'],))
         st.divider()
+
+    # === Pagination Controls ===
+    col1, col2, col3 = st.columns([1,2,1])
+    with col1:
+        if st.session_state.page_number > 0:
+            st.button("◀ Previous", on_click=go_prev)
+    with col2:
+        st.markdown(f"**Page {st.session_state.page_number + 1} of {total_pages}**")
+    with col3:
+        if st.session_state.page_number < total_pages - 1:
+            st.button("Next ▶", on_click=go_next)
 
 # === Detail View ===
 else:
