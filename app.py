@@ -49,7 +49,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # === Session State ===
-if 'search_query' not in st.session_state:
+if 'previous_filters' not in st.session_state:
+    st.session_state.previous_filters = {}
+
     st.session_state.search_query = ""
     st.session_state.selected_program = None
 if 'page_number' not in st.session_state:
@@ -107,6 +109,19 @@ apply_soon = st.sidebar.checkbox("Apply soon", help="Deadline in the next two we
 st.sidebar.markdown("---")
 
 # === Main View ===
+# Store current filters
+current_filters = {
+    'search_query': st.session_state.search_query,
+    'states': states,
+    'educations': educations,
+    'selected_work': selected_work,
+    'apply_soon': apply_soon
+}
+
+# Compare with previous filters and reset pagination if anything changed
+if current_filters != st.session_state.previous_filters:
+    st.session_state.page_number = 0
+    st.session_state.previous_filters = current_filters
 if st.session_state.selected_program is None:
     st.title("AmeriCorps Explorer")
 
