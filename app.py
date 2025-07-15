@@ -234,7 +234,8 @@ else:
 
     # === Similar Listings ===
     st.markdown("<div style='height:32px;'></div>", unsafe_allow_html=True)
-    st.subheader("🔁 Similar Listings")
+    st.divider()
+    st.subheader("You might also like…")
 
     def get_similarity_score(target, row):
         score = 0
@@ -261,8 +262,11 @@ else:
     top_similar = similar_df.sort_values(by='similarity', ascending=False).head(3)
 
     for _, sim in top_similar.iterrows():
-        st.markdown(f"**{sim['program_name']}**")
-        st.write(f"State: {sim['program_state'].title()}")
-        st.write(f"Accepting Applications: {format_date(sim['accept_start'])} → {format_date(sim['accept_end'])}")
-        st.button("Learn more", key=f"similar_{sim['listing_id']}", on_click=select_program, args=(sim['listing_id'],))
-        st.markdown("---")
+        with st.container():
+            st.markdown(f"**{sim['program_name']}**")
+            st.caption(f"Similarity Score: {sim['similarity']}/10")
+            st.markdown(f"State: {sim['program_state'].title()}  ")
+            st.markdown(f"Accepting Applications: {format_date(sim['accept_start'])} → {format_date(sim['accept_end'])}")
+            st.button("Learn more", key=f"similar_{sim['listing_id']}", on_click=select_program, args=(sim['listing_id'],))
+            st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
+            st.markdown("---")
