@@ -110,6 +110,7 @@ if st.session_state.selected_program is None:
     st.title("AmeriCorps Explorer")
 
     # === Filter Listings ===
+    st.session_state.page_number = 0  # Reset to first page on filter change
     filtered = df.copy()
     if states:
         filtered = filtered[filtered['program_state'].isin(states)]
