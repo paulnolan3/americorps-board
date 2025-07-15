@@ -231,3 +231,38 @@ else:
         st.markdown("".join(f'<span class="pill">{a}</span>' for a in areas), unsafe_allow_html=True)
     with tabs[6]:
         st.text(prog['contact'])
+
+    # === Similar Listings ===
+    st.markdown("<div style='height:32px;'></div>", unsafe_allow_html=True)
+    st.subheader("🔁 Similar Listings")
+
+    def get_similarity_score(target, row):
+        score = 0
+        target_skills = set(s.strip().lower() for s in str(target['skills']).split(',') if s.strip())
+        row_skills = set(s.strip().lower() for s in str(row['skills']).split(',') if s.strip())
+        score += len(target_skills.intersection(row_skills))
+
+        target_areas = set(a.strip().lower() for a in str(target['service_areas']).split(',') if a.strip())
+        row_areas = set(a.strip().lower() for a in str(row['service_areas']).split(',') if a.strip())
+        score += len(target_areas.intersection(row_areas))
+
+        return score
+
+    today = date.today()
+    similar_df = df.copy()
+    similar_df = similar_df[
+        (similar_df['listing_id'] != prog['listing_id']) &
+        (similar_df['work_schedule'] == prog['work_schedule']) &
+        (similar_df['accept_end'].notna()) &
+        (similar_df['accept_end'].dt.date >= today)
+    ].copy()
+
+    similar_df['similarity'] = similar_df.apply(lambda row: get_similarity_score(prog, row), axis=1)
+    top_similar = similar_df.sort_values(by='similarity', ascending=False).head(3)
+
+    for _, sim in top_similar.iterrows():
+        st.markdown(f"**{sim['program_name']}**")
+        st.write(f"State: {sim['program_state'].title()}")
+        st.write(f"Accepting Applications: {format_date(sim['accept_start'])} → {format_date(sim['accept_end'])}")
+        st.button("Learn more", key=f"similar_{sim['listing_id']}", on_click=select_program, args=(sim['listing_id'],))
+        st.markdown("---")
