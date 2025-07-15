@@ -238,6 +238,7 @@ else:
     st.subheader("You might also like…")
 
     def get_similarity_score(target, row):
+    # compute skill and service area overlap
     target_skills = set(s.strip().lower() for s in str(target['skills']).split(',') if s.strip())
     row_skills = set(s.strip().lower() for s in str(row['skills']).split(',') if s.strip())
     skill_overlap = len(target_skills.intersection(row_skills))
@@ -266,6 +267,6 @@ else:
         with st.container():
             st.markdown(f"**{sim['program_name']}**")
             st.caption(f"Similarity Score: {sim['similarity']}/10")
-                        st.button("Learn more", key=f"similar_{sim['listing_id']}", on_click=select_program, args=(sim['listing_id'],))
+            st.button("Learn more", key=f"similar_{sim['listing_id']}", on_click=select_program, args=(sim['listing_id'],))
             st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
             st.markdown("---")
