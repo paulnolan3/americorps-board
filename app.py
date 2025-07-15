@@ -1,3 +1,5 @@
+Streamlit Explorer v3
+
 import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
@@ -231,45 +233,3 @@ else:
         st.markdown("".join(f'<span class="pill">{a}</span>' for a in areas), unsafe_allow_html=True)
     with tabs[6]:
         st.text(prog['contact'])
-
-    # === Similar Listings ===
-    st.markdown("<div style='height:32px;'></div>", unsafe_allow_html=True)
-    st.divider()
-    st.subheader("You might also like…")
-
-    def get_similarity_score(target, row):
-    # Compute skill and service area overlap
-    target_skills = set(s.strip().lower() for s in str(target['skills']).split(',') if s.strip())
-    row_skills = set(s.strip().lower() for s in str(row['skills']).split(',') if s.strip())
-    skill_overlap = len(target_skills.intersection(row_skills))
-
-    target_areas = set(a.strip().lower() for a in str(target['service_areas']).split(',') if a.strip())
-    row_areas = set(a.strip().lower() for a in str(row['service_areas']).split(',') if a.strip())
-    area_overlap = len(target_areas.intersection(row_areas))
-
-    # Normalize to max of 10 points
-    raw_score = skill_overlap + area_overlap
-    return min(raw_score, 10)
-
-    today = date.today()
-    similar_df = df.copy()
-    similar_df = similar_df[
-        (similar_df['listing_id'] != prog['listing_id']) &
-        (similar_df['work_schedule'] == prog['work_schedule']) &
-        (similar_df['accept_end'].notna()) &
-        (similar_df['accept_end'].dt.date >= today)
-    ].copy()
-
-    similar_df['similarity'] = similar_df.apply(lambda row: get_similarity_score(prog, row), axis=1)
-    top_similar = similar_df.sort_values(by='similarity', ascending=False).head(3)
-
-    if top_similar.empty:
-        st.info("No similar listings found right now — check back later!")
-    else:
-        for _, sim in top_similar.iterrows():
-        with st.container():
-            st.markdown(f"**{sim['program_name']}**")
-            st.caption(f"Similarity Score: {sim['similarity']}/10")
-            st.button("Learn more", key=f"similar_{sim['listing_id']}", on_click=select_program, args=(sim['listing_id'],))
-            st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
-            st.markdown("---")
