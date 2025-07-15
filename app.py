@@ -110,7 +110,7 @@ if st.session_state.selected_program is None:
     st.title("AmeriCorps Explorer")
 
     # === Filter Listings ===
-    st.session_state.page_number = 0  # Reset to first page on filter change
+    filtered = df.copy()
     filtered = df.copy()
     if states:
         filtered = filtered[filtered['program_state'].isin(states)]
@@ -126,6 +126,8 @@ if st.session_state.selected_program is None:
     # === Count Display ===
     st.markdown(f"### There are <span class='pill'>{len(filtered)}</span>opportunities to serve.", unsafe_allow_html=True)
     search_query = st.text_input("🔍 Search opportunities")
+    if search_query or states or educations or selected_work or apply_soon:
+        st.session_state.page_number = 0
     if search_query:
         query = search_query.lower()
         filtered = filtered[filtered.apply(lambda row: any(query in str(row[fld]).lower() for fld in [
