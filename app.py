@@ -23,9 +23,6 @@ st.markdown("""
     margin: 2px 4px;
     font-size: 0.9em;
   }
-  .pill-filter.selected {
-    background-color: #112542;
-  }
   .apply-btn {
     border: 2px solid #1550ed;
     background-color: transparent;
@@ -114,14 +111,14 @@ if st.session_state.selected_program is None:
     # === Tag Filters Below Search ===
     st.markdown("**Filter by Service Area**")
     tag_options = ["Education", "Disaster Relief", "Environment", "Health", "Veterans"]
-    tag_html = ""
-    for tag in tag_options:
-        selected = 'selected' if tag in st.session_state.selected_tags else ''
-        tag_html += f'<span class="pill-filter {selected}" onClick="window.location.href='#{tag}'">{tag}</span>'
-    st.markdown(tag_html, unsafe_allow_html=True)
-    for tag in tag_options:
-        if st.button(tag, key=f"tag_{tag}"):
-            toggle_tag(tag)
+    tag_cols = st.columns(len(tag_options))
+    for i, tag in enumerate(tag_options):
+        if tag in st.session_state.selected_tags:
+            if tag_cols[i].button(f"✅ {tag}", key=f"tag_{tag}"):
+                toggle_tag(tag)
+        else:
+            if tag_cols[i].button(tag, key=f"tag_{tag}"):
+                toggle_tag(tag)
 
     # === Filter Listings ===
     filtered = df.copy()
@@ -169,7 +166,9 @@ else:
         st.markdown(f'<a href="{url}" target="_blank" class="apply-btn">Apply Now</a>', unsafe_allow_html=True)
         st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
     with col2:
-        location = f"{prog['program_state'].title()}, {prog['metro_area'].strip('[]\' ')}" if prog['metro_area'] else prog['program_state'].title()
+        state = prog['program_state'].title()
+        metro = str(prog['metro_area']).strip("[]'") if pd.notna(prog['metro_area']) else ""
+        location = f"{state}, {metro}" if metro else state
         start = format_date(prog['accept_start'])
         end = format_date(prog['accept_end'])
         age = f"{prog['age_minimum']}+" if prog['age_minimum'] else "None"
