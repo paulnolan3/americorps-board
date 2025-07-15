@@ -237,7 +237,7 @@ else:
     st.divider()
     st.subheader("You might also like…")
 
-    def get_similarity_score(target, row):
+def get_similarity_score(target, row):
     # Compute skill and service area overlap
     target_skills = set(s.strip().lower() for s in str(target['skills']).split(',') if s.strip())
     row_skills = set(s.strip().lower() for s in str(row['skills']).split(',') if s.strip())
@@ -250,6 +250,7 @@ else:
     # Normalize to max of 10 points
     raw_score = skill_overlap + area_overlap
     return min(raw_score, 10)
+
 
     today = date.today()
     similar_df = df.copy()
