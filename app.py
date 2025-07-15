@@ -111,7 +111,7 @@ if st.session_state.selected_program is None:
         filtered = filtered[(filtered['accept_end'].dt.date >= today) & (filtered['accept_end'].dt.date <= cutoff)]
 
     # === Count Display ===
-    st.markdown(f"### There are <span class='pill'>{len(filtered)}</span> opportunities to serve.", unsafe_allow_html=True)
+    st.markdown(f"### There are <span class='pill'>{len(filtered)}</span>opportunities to serve.", unsafe_allow_html=True)
     search_query = st.text_input("🔍 Search opportunities")
     if search_query:
         query = search_query.lower()
@@ -146,7 +146,7 @@ else:
         location = f"{state}, {metro}" if metro else state
         start = format_date(prog['accept_start'])
         end = format_date(prog['accept_end'])
-        age = f"{prog['age_minimum']}+" if prog['age_minimum'] else "None"
+        age = f"{int(prog['age_minimum'])}+" if pd.notna(prog['age_minimum']) else "None"
         st.markdown(f"""
         <div class="summary-card">
           <h4 style="margin:0 0 8px;">Program Summary</h4>
