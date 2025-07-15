@@ -117,6 +117,15 @@ if st.session_state.selected_program is None:
 
     # === Filter Listings ===
     filtered = df.copy()
+    apply_filters = any([
+        states,
+        educations,
+        len(selected_work) < 3,
+        apply_soon,
+        st.session_state.search_query.strip() != ""
+    ])
+    if not apply_filters:
+        filtered = filtered.sample(frac=1).reset_index(drop=True)  # Shuffle if no filters applied
     filtered = df.copy()
     if states:
         filtered = filtered[filtered['program_state'].isin(states)]
