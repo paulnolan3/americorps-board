@@ -212,15 +212,6 @@ if st.session_state.selected_program is None:
             st.button("Next ▶", on_click=go_next)
 
 # === Detail View ===
-if st.session_state.get("scroll_to_top"):
-    st.components.v1.html("""
-        <script>
-            window.scrollTo({ top: 0, behavior: 'auto' });
-        </script>
-    """, height=0)
-    st.session_state.scroll_to_top = False
-
-else:
     st.components.v1.html("""
         <script>
             window.scrollTo({ top: 0, behavior: 'auto' });
