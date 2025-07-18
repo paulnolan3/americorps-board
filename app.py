@@ -96,8 +96,7 @@ def format_date(ts):
 
 def select_program(pid):
     st.session_state.selected_program = pid
-    st.session_state.scroll_to_top = True
-
+    
 def clear_selection():
     st.session_state.selected_program = None
 
@@ -212,11 +211,6 @@ if st.session_state.selected_program is None:
             st.button("Next ▶", on_click=go_next)
 
 # === Detail View ===
-    st.components.v1.html("""
-        <script>
-            window.scrollTo({ top: 0, behavior: 'auto' });
-        </script>
-    """, height=0)
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
 
