@@ -156,16 +156,10 @@ if st.session_state.selected_program is None:
         placeholder="community outreach, veterans, teaching"
     )
 
-    if st.session_state.show_tutorial:
-        with st.container():
-            st.markdown("""
-            <div class="tutorial-box">
-            <strong>✨ Tutorial: A fresh way to find your best fit.</strong><br>
-            Use the search bar to look up opportunities by title, service area, or skill. Narrow things down using filters in the sidebar. Listings shuffle each time you load the page, so you'll always see something new – but once you apply a filter, they’ll stay put.
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button("Got it, thanks!", key="dismiss_tutorial"):
-                st.session_state.show_tutorial = False
+    with st.expander("✨ Tutorial: A fresh way to find your best fit.", expanded=False):
+        st.markdown("""
+        Use the search bar to look up opportunities by title, service area, or skill. Narrow things down using filters in the sidebar. Listings shuffle each time you load the page, so you'll always see something new – but once you apply a filter, they’ll stay put.
+        """)
 
     if search_query != st.session_state.search_query:
         st.session_state.search_query = search_query
