@@ -45,6 +45,13 @@ st.markdown("""
     background: #f9f9f9;
     margin-bottom: 24px;
   }
+  .tutorial-box {
+    background-color: #fffbea;
+    border-left: 6px solid #f7c948;
+    padding: 16px;
+    margin: 16px 0;
+    border-radius: 6px;
+  }
 </style>
 """, unsafe_allow_html=True)
 
@@ -53,6 +60,9 @@ if 'selected_program' not in st.session_state:
     st.session_state.selected_program = None
 if 'search_query' not in st.session_state:
     st.session_state.search_query = ""
+if 'page_number' not in st.session_state:
+    st.session_state.page_number = 0
+    st.session_state.selected_program = None
 if 'page_number' not in st.session_state:
     st.session_state.page_number = 0
 if 'show_tutorial' not in st.session_state:
@@ -92,9 +102,6 @@ def go_prev():
     if st.session_state.page_number > 0:
         st.session_state.page_number -= 1
 
-def dismiss_tutorial():
-    st.session_state.show_tutorial = False
-
 # === Load Data ===
 df = load_data()
 
@@ -113,16 +120,11 @@ apply_soon = st.sidebar.checkbox("Apply soon", help="Deadline in the next two we
 st.sidebar.markdown("---")
 
 # === Main View ===
-if st.session_state.show_tutorial:
-    st.markdown("""
-    <div class="summary-card">
-    <strong>✨ Tutorial: A fresh way to find your best fit.</strong><br>
-    Use the search bar to look up opportunities by title, service area, or skill. Narrow things down using filters in the sidebar. Listings shuffle each time you load the page, so you'll always see something new – but once you apply a filter, they’ll stay put.
-    </div>
-    """, unsafe_allow_html=True)
-    if st.button("Got it, thanks!"):
-        st.session_state.show_tutorial = False
 
+if st.session_state.selected_program is None:
+    st.title("AmeriCorps Explorer")
+
+    # === Filter Listings ===
     apply_filters = any([
         states,
         educations,
@@ -146,12 +148,25 @@ if st.session_state.show_tutorial:
         cutoff = today + timedelta(days=14)
         filtered = filtered[(filtered['accept_end'].dt.date >= today) & (filtered['accept_end'].dt.date <= cutoff)]
 
+    # === Count Display ===
     st.markdown(f"### There are <span class='pill'>{len(filtered)}</span>opportunities to serve.", unsafe_allow_html=True)
     search_query = st.text_input(
         "Search opportunities by name, service area, or skill",
         value=st.session_state.search_query,
         placeholder="community outreach, veterans, teaching"
     )
+
+    if st.session_state.show_tutorial:
+        with st.container():
+            st.markdown("""
+            <div class="tutorial-box">
+            <strong>✨ Tutorial: A fresh way to find your best fit.</strong><br>
+            Use the search bar to look up opportunities by title, service area, or skill. Narrow things down using filters in the sidebar. Listings shuffle each time you load the page, so you'll always see something new – but once you apply a filter, they’ll stay put.
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("Got it, thanks!"):
+                st.session_state.show_tutorial = False
+
     if search_query != st.session_state.search_query:
         st.session_state.search_query = search_query
         st.session_state.page_number = 0
@@ -161,11 +176,13 @@ if st.session_state.show_tutorial:
             'program_name','description','member_duties','program_benefits','skills','service_areas'
         ]), axis=1)]
 
+    # === Pagination Logic ===
     total_pages = max(1, (len(filtered) - 1) // RESULTS_PER_PAGE + 1)
     start_idx = st.session_state.page_number * RESULTS_PER_PAGE
     end_idx = start_idx + RESULTS_PER_PAGE
     visible_listings = filtered.iloc[start_idx:end_idx]
 
+    # === Display Listings ===
     for _, row in visible_listings.iterrows():
         st.subheader(row['program_name'])
         st.write(f"State: {row['program_state'].title()}")
@@ -175,6 +192,7 @@ if st.session_state.show_tutorial:
         st.button("Learn more", key=f"learn_{row['listing_id']}", on_click=select_program, args=(row['listing_id'],))
         st.divider()
 
+    # === Pagination Controls ===
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         if st.session_state.page_number > 0:
@@ -185,6 +203,7 @@ if st.session_state.show_tutorial:
         if st.session_state.page_number < total_pages - 1:
             st.button("Next ▶", on_click=go_next)
 
+# === Detail View ===
 else:
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
@@ -205,8 +224,8 @@ else:
         st.markdown(f"""
         <div class="summary-card">
           <h4 style="margin:0 0 8px;">Program Summary</h4>
-          <p><strong>🗺 Location:</strong> {location}</p>
-          <p><strong>📅 Dates:</strong> {start} – {end}</p>
+          <p><strong>🗽 Location:</strong> {location}</p>
+          <p><strong>🗕 Dates:</strong> {start} – {end}</p>
           <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
           <p><strong>🎓 Education:</strong> {prog['education_level']}</p>
           <p><strong>✅ Age:</strong> {age}</p>
