@@ -93,6 +93,7 @@ def format_date(ts):
 
 def select_program(pid):
     st.session_state.selected_program = pid
+    st.session_state.scroll_to_top = True
 
 def clear_selection():
     st.session_state.selected_program = None
@@ -209,6 +210,14 @@ if st.session_state.selected_program is None:
 
 # === Detail View ===
 else:
+    if st.session_state.get("scroll_to_top"):
+        import streamlit.components.v1 as components
+        components.html("""
+            <script>
+                window.scrollTo(0, 0);
+            </script>
+        """, height=0, width=0)
+        st.session_state.scroll_to_top = False
     import streamlit.components.v1 as components
     components.html("""
         <script>
