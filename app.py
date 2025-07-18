@@ -93,6 +93,10 @@ def format_date(ts):
 
 def select_program(pid):
     st.session_state.selected_program = pid
+    import time
+    time.sleep(0.1)
+    import streamlit.components.v1 as components
+    components.html("<script>scrollToTop();</script>", height=0, width=0)
 
 def clear_selection():
     st.session_state.selected_program = None
@@ -208,6 +212,16 @@ if st.session_state.selected_program is None:
             st.button("Next ▶", on_click=go_next)
 
 # === Detail View ===
+import streamlit.components.v1 as components
+
+# Inject JS function to enable scroll-to-top
+components.html("""
+<script>
+function scrollToTop() {
+  window.scrollTo(0, 0);
+}
+</script>
+""", height=0, width=0)
 else:
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
