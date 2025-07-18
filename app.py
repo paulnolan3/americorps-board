@@ -117,12 +117,14 @@ if st.session_state.selected_program is None:
     st.title("AmeriCorps Explorer")
 
     if st.session_state.show_tutorial:
-        with st.expander("✨ Tutorial: A fresh way to find your best fit."):
-            st.markdown("""
-            Use the search bar to look up opportunities by title, service area, or skill. Narrow things down using filters in the sidebar. Listings shuffle each time you load the page, so you'll always see something new – but once you apply a filter, they’ll stay put.
-            """)
-            if st.button("Got it, thanks!"):
-                st.session_state.show_tutorial = False
+    st.markdown("""
+    <div class="summary-card">
+    <strong>✨ Tutorial: A fresh way to find your best fit.</strong><br>
+    Use the search bar to look up opportunities by title, service area, or skill. Narrow things down using filters in the sidebar. Listings shuffle each time you load the page, so you'll always see something new – but once you apply a filter, they’ll stay put.
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Got it, thanks!"):
+        st.session_state.show_tutorial = False
 
     apply_filters = any([
         states,
