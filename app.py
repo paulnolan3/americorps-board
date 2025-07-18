@@ -125,6 +125,8 @@ if st.session_state.selected_program is None:
     """, unsafe_allow_html=True)
     if st.button("Got it, thanks!"):
         st.session_state.show_tutorial = False
+    if st.button("Got it, thanks!"):
+        st.session_state.show_tutorial = False
 
     apply_filters = any([
         states,
