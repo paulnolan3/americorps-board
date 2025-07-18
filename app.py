@@ -215,6 +215,11 @@ if st.session_state.selected_program is None:
         </script>
     """, unsafe_allow_html=True)
 else:
+    st.components.v1.html("""
+    <script>
+        window.scrollTo({ top: 0, behavior: 'auto' });
+    </script>
+    """, height=0)
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
 
