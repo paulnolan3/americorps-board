@@ -121,9 +121,8 @@ if st.session_state.selected_program is None:
             st.markdown("""
             Use the search bar to look up opportunities by title, service area, or skill. Narrow things down using filters in the sidebar. Listings shuffle each time you load the page, so you'll always see something new – but once you apply a filter, they’ll stay put.
             """)
-            if if st.button("Got it, thanks!"):
-            st.session_state.show_tutorial = False:
-                dismiss_tutorial()
+            if st.button("Got it, thanks!"):
+                st.session_state.show_tutorial = False
 
     apply_filters = any([
         states,
