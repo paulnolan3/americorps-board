@@ -14,6 +14,7 @@ st.markdown("""
     border-radius: 9999px;
     font-size: 0.85em;
     cursor: pointer;
+    white-space: nowrap;
   }
   .pill-skill {
     background-color: #112542;
@@ -22,6 +23,8 @@ st.markdown("""
     color: white;
     margin: 2px 4px;
     font-size: 0.9em;
+    display: inline-block;
+    white-space: nowrap;
   }
   .apply-btn {
     border: 2px solid #1550ed;
