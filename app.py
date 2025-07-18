@@ -209,6 +209,11 @@ if st.session_state.selected_program is None:
             st.button("Next ▶", on_click=go_next)
 
 # === Detail View ===
+    st.markdown("""
+        <script>
+            window.scrollTo(0, 0);
+        </script>
+    """, unsafe_allow_html=True)
 else:
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
