@@ -210,19 +210,14 @@ if st.session_state.selected_program is None:
 
 # === Detail View ===
 else:
-    if st.session_state.get("scroll_to_top"):
-        import streamlit.components.v1 as components
-        components.html("""
-            <script>
-                window.scrollTo(0, 0);
-            </script>
-        """, height=0, width=0)
-        st.session_state.scroll_to_top = False
     import streamlit.components.v1 as components
     components.html("""
-        <script>
-            window.scrollTo(0, 0);
-        </script>
+<script>
+  function scrollToTop() {
+    window.scrollTo(0, 0);
+  }
+  scrollToTop();
+</script>
     """, height=0, width=0)
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
