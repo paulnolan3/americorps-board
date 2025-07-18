@@ -164,10 +164,8 @@ if st.session_state.selected_program is None:
             Use the search bar to look up opportunities by title, service area, or skill. Narrow things down using filters in the sidebar. Listings shuffle each time you load the page, so you'll always see something new – but once you apply a filter, they’ll stay put.
             </div>
             """, unsafe_allow_html=True)
-            got_it = st.button("Got it, thanks!", key="dismiss_tutorial")
-        if got_it:
-            st.session_state.show_tutorial = False
-            st.experimental_rerun()
+            if st.button("Got it, thanks!", key="dismiss_tutorial"):
+                st.session_state.show_tutorial = False
 
     if search_query != st.session_state.search_query:
         st.session_state.search_query = search_query
