@@ -73,14 +73,14 @@ if 'page_number' not in st.session_state:
 if 'show_tutorial' not in st.session_state:
     st.session_state.show_tutorial = True
 
-query = st.experimental_get_query_params()
+query = st.query_params
 if 'scroll' in query and query['scroll'] == ['top']:
     st.markdown("""
         <script>
             window.location.hash = 'top';
         </script>
     """, unsafe_allow_html=True)
-    st.experimental_set_query_params()
+    st.query_params.clear()
 
 # === Constants ===
 RESULTS_PER_PAGE = 20
@@ -105,7 +105,7 @@ def format_date(ts):
 
 def select_program(pid):
     st.session_state.selected_program = pid
-    st.experimental_set_query_params(scroll='top')
+    st.query_params['scroll'] = 'top'
     st.experimental_rerun()
 
 def clear_selection():
