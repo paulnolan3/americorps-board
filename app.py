@@ -22,7 +22,9 @@ st.markdown("""
     color: white;
     margin: 2px 4px;
     font-size: 0.9em;
-  }
+    display: inline-block;
+    white-space: nowrap;
+}
   .apply-btn {
     border: 2px solid #1550ed;
     background-color: transparent;
