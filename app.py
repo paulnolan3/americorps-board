@@ -94,6 +94,7 @@ def format_date(ts):
 
 def select_program(pid):
     st.session_state.selected_program = pid
+    st.session_state.just_switched_to_detail = True
 
 def clear_selection():
     st.session_state.selected_program = None
@@ -215,11 +216,13 @@ if st.session_state.selected_program is None:
         </script>
     """, unsafe_allow_html=True)
 else:
-    st.components.v1.html("""
-    <script>
-        window.scrollTo({ top: 0, behavior: 'auto' });
-    </script>
-    """, height=0)
+    if st.session_state.get("just_switched_to_detail"):
+        st.components.v1.html("""
+        <script>
+            window.scrollTo({ top: 0, behavior: 'auto' });
+        </script>
+        """, height=0)
+        st.session_state.just_switched_to_detail = False
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
 
