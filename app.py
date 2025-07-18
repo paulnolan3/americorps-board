@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 
-st.markdown("<a name='top'></a>", unsafe_allow_html=True)
-
 # === CSS Styling ===
 st.markdown("""
 <style>
@@ -73,14 +71,7 @@ if 'page_number' not in st.session_state:
 if 'show_tutorial' not in st.session_state:
     st.session_state.show_tutorial = True
 
-query = st.query_params
-if 'scroll' in query and query['scroll'] == ['top']:
-    st.markdown("""
-        <script>
-            window.location.hash = 'top';
-        </script>
-    """, unsafe_allow_html=True)
-    st.query_params.clear()
+
 
 # === Constants ===
 RESULTS_PER_PAGE = 20
@@ -105,8 +96,7 @@ def format_date(ts):
 
 def select_program(pid):
     st.session_state.selected_program = pid
-    st.query_params = {"scroll": "top"}
-    st.experimental_rerun()
+    st.rerun()
 
 def clear_selection():
     st.session_state.selected_program = None
@@ -222,13 +212,12 @@ if st.session_state.selected_program is None:
             st.button("Next ▶", on_click=go_next)
 
 # === Detail View ===
-    st.markdown("""
-        <script>
-            window.scrollTo(0, 0);
-        </script>
-    """, unsafe_allow_html=True)
 else:
-    
+    st.components.v1.html("""
+        <script>
+            window.scrollTo({ top: 0, behavior: 'auto' });
+        </script>
+    """, height=0)
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
 
