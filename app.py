@@ -213,9 +213,7 @@ else:
     import streamlit.components.v1 as components
     components.html("""
 <script>
-  window.addEventListener('load', function() {
-    window.scrollTo({ top: 0, behavior: 'auto' });
-  });
+  window.scrollTo(0, 0);
 </script>
 """, height=0, width=0)
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
