@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 
+st.markdown("<a name='top'></a>", unsafe_allow_html=True)
+
 # === CSS Styling ===
 st.markdown("""
 <style>
@@ -71,6 +73,15 @@ if 'page_number' not in st.session_state:
 if 'show_tutorial' not in st.session_state:
     st.session_state.show_tutorial = True
 
+query = st.experimental_get_query_params()
+if 'scroll' in query and query['scroll'] == ['top']:
+    st.markdown("""
+        <script>
+            window.location.hash = 'top';
+        </script>
+    """, unsafe_allow_html=True)
+    st.experimental_set_query_params()
+
 # === Constants ===
 RESULTS_PER_PAGE = 20
 
@@ -94,7 +105,8 @@ def format_date(ts):
 
 def select_program(pid):
     st.session_state.selected_program = pid
-    st.session_state.just_switched_to_detail = True
+    st.experimental_set_query_params(scroll='top')
+    st.experimental_rerun()
 
 def clear_selection():
     st.session_state.selected_program = None
