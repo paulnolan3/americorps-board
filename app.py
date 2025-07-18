@@ -213,12 +213,11 @@ else:
     import streamlit.components.v1 as components
     components.html("""
 <script>
-  function scrollToTop() {
-    window.scrollTo(0, 0);
-  }
-  scrollToTop();
+  window.addEventListener('load', function() {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  });
 </script>
-    """, height=0, width=0)
+""", height=0, width=0)
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
 
