@@ -116,13 +116,13 @@ educations = st.sidebar.multiselect("Education Level", [
 st.sidebar.markdown("**Work Schedule**")
 selected_work = [opt for opt in ["Full Time", "Part Time", "Summer"] if st.sidebar.checkbox(opt, value=True)]
 st.sidebar.markdown("---")
+""", unsafe_allow_html=True)
+apply_soon = st.sidebar.checkbox("Apply soon", help="Deadline in the next two weeks")
+st.sidebar.markdown("---")
 st.sidebar.markdown("""
 <span style='color: gray; font-size: 0.85em;'>
 Disclaimer: This tool is not a government website or endorsed by AmeriCorps. This tool helps with search and discovery. All applications must be submitted through the official <a href='https://my.americorps.gov/mp/listing/publicRequestSearch.do' target='_blank' style='color: gray;'>MyAmeriCorps portal</a>.
 </span>
-""", unsafe_allow_html=True)
-apply_soon = st.sidebar.checkbox("Apply soon", help="Deadline in the next two weeks")
-st.sidebar.markdown("---")
 
 # === Main View ===
 
