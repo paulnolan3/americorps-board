@@ -117,9 +117,11 @@ st.sidebar.markdown("**Work Schedule**")
 selected_work = [opt for opt in ["Full Time", "Part Time", "Summer"] if st.sidebar.checkbox(opt, value=True)]
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
+<div style='position: absolute; bottom: 0; width: 100%;'>
 <span style='color: gray; font-size: 0.85em;'>
-Disclaimer: This tool is not a government website or endorsed by AmeriCorps. All applications must be submitted on the official MyAmeriCorps portal. Each opportunity links to the official portal where you can create an account and apply.
+Disclaimer: This tool is not a government website or endorsed by AmeriCorps. This tool helps with search and discovery. All applications must be submitted through the official <a href='https://my.americorps.gov/mp/listing/publicRequestSearch.do' target='_blank'>MyAmeriCorps portal</a>.
 </span>
+</div>
 """, unsafe_allow_html=True)
 apply_soon = st.sidebar.checkbox("Apply soon", help="Deadline in the next two weeks")
 st.sidebar.markdown("---")
