@@ -5,7 +5,8 @@ from datetime import date, timedelta
 # === CSS Styling ===
 st.markdown("""
 <style>
-  .pill, .pill-filter {
+  /* Pill for count display */
+  .pill {
     display: inline-block;
     padding: 4px 10px;
     margin: 2px 6px 2px 0;
@@ -13,7 +14,7 @@ st.markdown("""
     color: white;
     border-radius: 9999px;
     font-size: 0.85em;
-    cursor: pointer;
+    cursor: default;
   }
   .apply-btn {
     border: 2px solid #1550ed;
@@ -37,13 +38,6 @@ st.markdown("""
     background: #f9f9f9;
     margin-bottom: 24px;
   }
-  .tutorial-box {
-    background-color: #fffbea;
-    border-left: 6px solid #f7c948;
-    padding: 16px;
-    margin: 16px 0;
-    border-radius: 6px;
-  }
 </style>
 """, unsafe_allow_html=True)
 
@@ -54,8 +48,6 @@ if 'search_query' not in st.session_state:
     st.session_state.search_query = ""
 if 'page_number' not in st.session_state:
     st.session_state.page_number = 0
-if 'show_tutorial' not in st.session_state:
-    st.session_state.show_tutorial = True
 if 'service_area_filters' not in st.session_state:
     st.session_state.service_area_filters = []
 
@@ -161,7 +153,6 @@ if st.session_state.selected_program is None:
         selection_mode="multi",
         default=st.session_state.service_area_filters,
         key="service_area_filters",
-        help="Filter by service area"
     )
     if selected:
         filtered = filtered[filtered['service_areas'].apply(
@@ -191,10 +182,12 @@ if st.session_state.selected_program is None:
     with c3:
         if st.session_state.page_number<total-1: st.button("Next ▶",on_click=go_next)
 
-# Detail
+# Detail View
 else:
     import streamlit.components.v1 as components
-    components.html("""<script>window.scrollTo(0,0);</script>""",height=0,width=0)
+    components.html("""
+<script>window.scrollTo(0,0);</script>
+""" ,height=0,width=0)
     prog = df.loc[df['listing_id']==st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search",on_click=clear_selection)
 
@@ -202,24 +195,36 @@ else:
     with col1:
         st.header(prog['program_name'])
         link = f"https://my.americorps.gov/mp/listing/viewListing.do?fromSearch=true&id={prog['listing_id']}"
-        st.markdown(f"<a href='{link}' target='_blank' class='apply-btn'>Apply Now</a>",unsafe_allow_html=True)
+        st.markdown(f"<a href='{link}' target='_blank' class='apply-btn'>Apply Now</a>", unsafe_allow_html=True)
     with col2:
         loc = prog['program_state'].title()
         metro = str(prog['metro_area']).strip("[]'") if pd.notna(prog['metro_area']) else ""
         loc = f"{loc}, {metro}" if metro else loc
-        st.markdown(f"<div class='summary-card'><h4 style='margin:0 0 8px;'>Program Summary</h4><p><strong>📍 Location:</strong> {loc}</p><p><strong>🗓️ Dates:</strong> {format_date(prog['accept_start'])} – {format_date(prog['accept_end'])}</p><p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p><p><strong>🎓 Education:</strong> {prog['education_level']}</p><p><strong>✅ Age:</strong> {int(prog['age_minimum']) if pd.notna(prog['age_minimum']) else 'None'}+</p></div>",unsafe_allow_html=True)
+        st.markdown(
+            f"<div class='summary-card'><h4 style='margin:0 0 8px;'>Program Summary</h4>"
+            f"<p><strong>📍 Location:</strong> {loc}</p>"
+            f"<p><strong>🗓️ Dates:</strong> {format_date(prog['accept_start'])} – {format_date(prog['accept_end'])}</p>"
+            f"<p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>"
+            f"<p><strong>🎓 Education:</strong> {prog['education_level']}</p>"
+            f"<p><strong>✅ Age:</strong> {int(prog['age_minimum']) if pd.notna(prog['age_minimum']) else 'None'}+</p></div>",
+            unsafe_allow_html=True
+        )
 
     tabs = st.tabs(["💬 Overview","🛠 Duties","💵 Benefits","☑️ Terms","📚 Skills","🌐 Service Areas","✉️ Contact"])
-    with tabs[0]: st.write(prog.get('description','')); st.write(f"**Listing ID:** {prog['listing_id']}")
-    with tabs[1]: st.write(prog['member_duties'])
-    with tabs[2]: st.write(prog['program_benefits'])
-    with tabs[3]: st.write(prog['terms'] if pd.notna(prog['terms']) else 'None')
+    with tabs[0]:
+        st.write(prog.get('description',''))
+        st.write(f"**Listing ID:** {prog['listing_id']}")
+    with tabs[1]:
+        st.write(prog['member_duties'])
+    with tabs[2]:
+        st.write(prog['program_benefits'])
+    with tabs[3]:
+        st.write(prog['terms'] if pd.notna(prog['terms']) else 'None')
     with tabs[4]:
-        skills_list = [s.strip() for s in prog['skills'].split(',') if s.strip()]
-        for skill in skills_list:
+        for skill in [s.strip() for s in prog['skills'].split(',') if s.strip()]:
             st.badge(skill)
     with tabs[5]:
-        areas_list = [a.strip() for a in prog['service_areas'].split(',') if a.strip()]
-        for area in areas_list:
+        for area in [a.strip() for a in prog['service_areas'].split(',') if a.strip()]:
             st.badge(area)
-    with tabs[6]: st.text(prog['contact'])
+    with tabs[6]:
+        st.text(prog['contact'])
