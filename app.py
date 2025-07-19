@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
@@ -70,6 +69,9 @@ if 'page_number' not in st.session_state:
     st.session_state.page_number = 0
 if 'show_tutorial' not in st.session_state:
     st.session_state.show_tutorial = True
+# Initialize service area filters
+if 'service_area_filters' not in st.session_state:
+    st.session_state.service_area_filters = []
 
 # === Constants ===
 RESULTS_PER_PAGE = 20
@@ -122,17 +124,15 @@ selected_work = [opt for opt in ["Full Time", "Part Time", "Summer"] if st.sideb
 st.sidebar.markdown("---")
 apply_soon = st.sidebar.checkbox("Apply soon", help="Deadline in the next two weeks")
 st.sidebar.markdown("---", help=None)
-st.sidebar.markdown("""
+st.sidebar.markdown(
+    """
 <span style='color: gray; font-size: 0.85em;'>
 Disclaimer: This tool is not a government website or endorsed by AmeriCorps. This tool helps with search and discovery. All applications must be submitted through the official <a href='https://my.americorps.gov/mp/listing/publicRequestSearch.do' target='_blank' style='color: gray;'>MyAmeriCorps portal</a>.
 </span>
 """, unsafe_allow_html=True)
 
-
 # === Main View ===
-
 if st.session_state.selected_program is None:
-    
 
     st.title("AmeriCorps Explorer")
 
@@ -162,6 +162,8 @@ if st.session_state.selected_program is None:
 
     # === Count Display ===
     st.markdown(f"### There are <span class='pill'>{len(filtered)}</span>opportunities to serve.", unsafe_allow_html=True)
+
+    # === Search Input ===
     search_query = st.text_input(
         "Search opportunities by name, service area, or skill",
         value=st.session_state.search_query,
@@ -169,10 +171,28 @@ if st.session_state.selected_program is None:
     )
 
     with st.expander("✨ Tutorial: A fresh way to find your best fit.", expanded=False):
-        st.markdown("""
-        Use the search bar to look up opportunities by title, service area, or skill. Narrow things down using filters in the sidebar. Listings shuffle each time you load the page, so you'll always see something new – but once you apply a filter, they’ll stay put.
-        """)
+        st.markdown(
+            """
+            Use the search bar to look up opportunities by title, service area, or skill. Narrow things down using filters in the sidebar. Listings shuffle each time you load the page, so you'll always see something new – but once you apply a filter, they’ll stay put.
+            """
+        )
 
+    # === Service Area Pills Filter ===
+    st.session_state.service_area_filters = st.pills(
+        "Service Areas",
+        ["Education", "Environment", "Health"],
+        selection_mode="multi",
+        default=st.session_state.service_area_filters,
+        help="Filter by service area"
+    )
+    if st.session_state.service_area_filters:
+        filtered = filtered[
+            filtered['service_areas'].apply(
+                lambda cell: any(sa in [s.strip() for s in cell.split(',')] for sa in st.session_state.service_area_filters)
+            )
+        ]
+
+    # === Update Search Query State ===
     if search_query != st.session_state.search_query:
         st.session_state.search_query = search_query
         st.session_state.page_number = 0
@@ -192,9 +212,9 @@ if st.session_state.selected_program is None:
     for _, row in visible_listings.iterrows():
         st.subheader(row['program_name'])
         st.write(f"State: {row['program_state'].title()}")
-        start = format_date(row['accept_start'])
-        end = format_date(row['accept_end'])
-        st.write(f"Accepting Applications: {start} → {end}")
+        start_fmt = format_date(row['accept_start'])
+        end_fmt = format_date(row['accept_end'])
+        st.write(f"Accepting Applications: {start_fmt} → {end_fmt}")
         st.button("Learn more", key=f"learn_{row['listing_id']}", on_click=select_program, args=(row['listing_id'],))
         st.divider()
 
@@ -212,11 +232,15 @@ if st.session_state.selected_program is None:
 # === Detail View ===
 else:
     import streamlit.components.v1 as components
-    components.html("""
+    components.html(
+        """
 <script>
   window.scrollTo(0, 0);
 </script>
-""", height=0, width=0)
+""",
+        height=0,
+        width=0
+    )
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
 
@@ -230,14 +254,14 @@ else:
         state = prog['program_state'].title()
         metro = str(prog['metro_area']).strip("[]'") if pd.notna(prog['metro_area']) else ""
         location = f"{state}, {metro}" if metro else state
-        start = format_date(prog['accept_start'])
-        end = format_date(prog['accept_end'])
+        start_fmt = format_date(prog['accept_start'])
+        end_fmt = format_date(prog['accept_end'])
         age = f"{int(prog['age_minimum'])}+" if pd.notna(prog['age_minimum']) else "None"
         st.markdown(f"""
         <div class="summary-card">
           <h4 style="margin:0 0 8px;">Program Summary</h4>
-          <p><strong>🗽 Location:</strong> {location}</p>
-          <p><strong>🗕 Dates:</strong> {start} – {end}</p>
+          <p><strong>📍 Location:</strong> {location}</p>
+          <p><strong>🗓️ Dates:</strong> {start_fmt} – {end_fmt}</p>
           <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
           <p><strong>🎓 Education:</strong> {prog['education_level']}</p>
           <p><strong>✅ Age:</strong> {age}</p>
