@@ -64,9 +64,6 @@ if 'search_query' not in st.session_state:
     st.session_state.search_query = ""
 if 'page_number' not in st.session_state:
     st.session_state.page_number = 0
-    st.session_state.selected_program = None
-if 'page_number' not in st.session_state:
-    st.session_state.page_number = 0
 if 'show_tutorial' not in st.session_state:
     st.session_state.show_tutorial = True
 # Initialize service area filters
@@ -90,6 +87,7 @@ def load_data():
     df['accept_start'] = pd.to_datetime(df['accept_start'], format='%m/%d/%Y', errors='coerce')
     df['accept_end']   = pd.to_datetime(df['accept_end'],   format='%m/%d/%Y', errors='coerce')
     return df
+
 
 def format_date(ts):
     return "" if pd.isna(ts) else ts.strftime("%B %-d, %Y")
@@ -136,18 +134,7 @@ if st.session_state.selected_program is None:
 
     st.title("AmeriCorps Explorer")
 
-    # === Filter Listings ===
-    apply_filters = any([
-        states,
-        educations,
-        len(selected_work) < 3,
-        apply_soon,
-        st.session_state.search_query.strip() != ""
-    ])
-
-    if not apply_filters:
-        df = df.sample(frac=1).reset_index(drop=True)
-
+    # === Data Preparation ===
     filtered = df.copy()
     if states:
         filtered = filtered[filtered['program_state'].isin(states)]
@@ -161,7 +148,7 @@ if st.session_state.selected_program is None:
         filtered = filtered[(filtered['accept_end'].dt.date >= today) & (filtered['accept_end'].dt.date <= cutoff)]
 
     # === Count Display ===
-    st.markdown(f"### There are <span class='pill'>{len(filtered)}</span>opportunities to serve.", unsafe_allow_html=True)
+    st.markdown(f"### There are <span class='pill'>{len(filtered)}</span> opportunities to serve.", unsafe_allow_html=True)
 
     # === Search Input ===
     search_query = st.text_input(
@@ -169,38 +156,30 @@ if st.session_state.selected_program is None:
         value=st.session_state.search_query,
         placeholder="community outreach, veterans, teaching"
     )
-
-    with st.expander("✨ Tutorial: A fresh way to find your best fit.", expanded=False):
-        st.markdown(
-            """
-            Use the search bar to look up opportunities by title, service area, or skill. Narrow things down using filters in the sidebar. Listings shuffle each time you load the page, so you'll always see something new – but once you apply a filter, they’ll stay put.
-            """
-        )
-
-    # === Service Area Pills Filter ===
-    st.session_state.service_area_filters = st.pills(
-        "Service Areas",
-        ["Education", "Environment", "Health"],
-        selection_mode="multi",
-        default=st.session_state.service_area_filters,
-        help="Filter by service area"
-    )
-    if st.session_state.service_area_filters:
-        filtered = filtered[
-            filtered['service_areas'].apply(
-                lambda cell: any(sa in [s.strip() for s in cell.split(',')] for sa in st.session_state.service_area_filters)
-            )
-        ]
-
-    # === Update Search Query State ===
     if search_query != st.session_state.search_query:
         st.session_state.search_query = search_query
         st.session_state.page_number = 0
     if search_query:
         query = search_query.lower()
-        filtered = filtered[filtered.apply(lambda row: any(query in str(row[fld]).lower() for fld in [
-            'program_name','description','member_duties','program_benefits','skills','service_areas'
-        ]), axis=1)]
+        filtered = filtered[filtered.apply(
+            lambda row: any(query in str(row[fld]).lower() for fld in [
+                'program_name','description','member_duties','program_benefits','skills','service_areas'
+            ]), axis=1)]
+
+    # === Service Area Pills Filter ===
+    service_selected = st.pills(
+        "Service Areas",
+        ["Education", "Environment", "Health", "Disaster Relief", "Veterans"],
+        selection_mode="multi",
+        default=st.session_state.service_area_filters,
+        key="service_area_filters",
+        help="Filter by service area"
+    )
+    st.session_state.service_area_filters = service_selected
+    if service_selected:
+        filtered = filtered[filtered['service_areas'].apply(
+            lambda cell: any(sa in [s.strip() for s in cell.split(',')] for sa in service_selected)
+        )]
 
     # === Pagination Logic ===
     total_pages = max(1, (len(filtered) - 1) // RESULTS_PER_PAGE + 1)
@@ -285,6 +264,6 @@ else:
         st.markdown("".join(f'<span class="pill-skill">{s}</span>' for s in skills), unsafe_allow_html=True)
     with tabs[5]:
         areas = [a.strip() for a in prog['service_areas'].split(',') if a.strip()]
-        st.markdown("".join(f'<span class="pill">{a}</span>' for a in areas), unsafe_allow_html=True)
+        st.markdown("".join(f'<span class=\"pill\">{a}</span>' for a in areas), unsafe_allow_html=True)
     with tabs[6]:
         st.text(prog['contact'])
