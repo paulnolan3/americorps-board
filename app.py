@@ -169,8 +169,8 @@ if st.session_state.selected_program is None:
     # Listings
     for _,row in page_data.iterrows():
         st.divider()
-        st.write(f"State: {row['program_state'].title()}")
         st.subheader(row['program_name'])
+        st.write(f"State: {row['program_state'].title()}")
         st.write(f"Accepting Applications: {format_date(row['accept_start'])} → {format_date(row['accept_end'])}")
         st.button("Learn more", key=f"learn_{row['listing_id']}", on_click=select_program, args=(row['listing_id'],))
 
