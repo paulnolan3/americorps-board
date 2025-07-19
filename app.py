@@ -221,15 +221,12 @@ else:
         st.write(prog['terms'] if pd.notna(prog['terms']) else 'None')
     with tabs[4]:
         skills_list = [s.strip() for s in prog['skills'].split(',') if s.strip()]
-        if skills_list:
-            cols = st.columns(len(skills_list))
-            for idx, skill in enumerate(skills_list):
-                cols[idx].badge(skill)
+        for skill in skills_list:
+            st.badge(skill)
     with tabs[5]:
         areas_list = [a.strip() for a in prog['service_areas'].split(',') if a.strip()]
-        if areas_list:
-            cols2 = st.columns(len(areas_list))
-            for idx, area in enumerate(areas_list):
-                cols2[idx].badge(area)
+        for area in areas_list:
+            st.badge(area)
     with tabs[6]:
+        st.text(prog['contact'])
         st.text(prog['contact'])
