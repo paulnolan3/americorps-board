@@ -1,9 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
-
-# === New: import components once for scroll control ===
-import streamlit.components.v1 as components
+import streamlit.components.v1 as components  # for scroll-to-top JS
 
 # === CSS Styling ===
 st.markdown("""
@@ -27,7 +25,7 @@ st.markdown("""
     font-size: 0.9em;
     display: inline-block;
     white-space: nowrap;
-}
+  }
   .apply-btn {
     border: 2px solid #1550ed;
     background-color: transparent;
@@ -67,9 +65,6 @@ if 'search_query' not in st.session_state:
     st.session_state.search_query = ""
 if 'page_number' not in st.session_state:
     st.session_state.page_number = 0
-    st.session_state.selected_program = None
-if 'page_number' not in st.session_state:
-    st.session_state.page_number = 0
 if 'show_tutorial' not in st.session_state:
     st.session_state.show_tutorial = True
 
@@ -91,12 +86,12 @@ def load_data():
     df['accept_end']   = pd.to_datetime(df['accept_end'],   format='%m/%d/%Y', errors='coerce')
     return df
 
+# === Helpers ===
 def format_date(ts):
     return "" if pd.isna(ts) else ts.strftime("%B %-d, %Y")
 
 def select_program(pid):
     st.session_state.selected_program = pid
-    st.session_state.scroll_to_top = True
 
 def clear_selection():
     st.session_state.selected_program = None
@@ -124,30 +119,31 @@ selected_work = [opt for opt in ["Full Time", "Part Time", "Summer"] if st.sideb
 st.sidebar.markdown("---")
 apply_soon = st.sidebar.checkbox("Apply soon", help="Deadline in the next two weeks")
 st.sidebar.markdown("---", help=None)
-st.sidebar.markdown("""
+st.sidebar.markdown(
+"""
 <span style='color: gray; font-size: 0.85em;'>
 Disclaimer: This tool is not a government website or endorsed by AmeriCorps. This tool helps with search and discovery. All applications must be submitted through the official <a href='https://my.americorps.gov/mp/listing/publicRequestSearch.do' target='_blank' style='color: gray;'>MyAmeriCorps portal</a>.
 </span>
 """, unsafe_allow_html=True)
 
-
 # === Main View ===
-
 if st.session_state.selected_program is None:
-    # === New: scroll to top on entering main view ===
+    # scroll top on main view
     components.html(
         """
         <script>
-          window.scrollTo(0, 0);
+          (function() {
+            const ctx = window.top || window.parent || window;
+            ctx.scrollTo(0, 0);
+          })();
         </script>
         """,
-        height=0,
-        width=0
+        height=1,
+        width=1
     )
 
     st.title("AmeriCorps Explorer")
-
-    # === Filter Listings ===
+    # Filter and search logic...
     apply_filters = any([
         states,
         educations,
@@ -155,10 +151,8 @@ if st.session_state.selected_program is None:
         apply_soon,
         st.session_state.search_query.strip() != ""
     ])
-
     if not apply_filters:
         df = df.sample(frac=1).reset_index(drop=True)
-
     filtered = df.copy()
     if states:
         filtered = filtered[filtered['program_state'].isin(states)]
@@ -171,71 +165,62 @@ if st.session_state.selected_program is None:
         cutoff = today + timedelta(days=14)
         filtered = filtered[(filtered['accept_end'].dt.date >= today) & (filtered['accept_end'].dt.date <= cutoff)]
 
-    # === Count Display ===
-    st.markdown(f"### There are <span class='pill'>{len(filtered)}</span>opportunities to serve.", unsafe_allow_html=True)
+    st.markdown(f"### There are <span class='pill'>{len(filtered)}</span> opportunities to serve.", unsafe_allow_html=True)
     search_query = st.text_input(
         "Search opportunities by name, service area, or skill",
         value=st.session_state.search_query,
         placeholder="community outreach, veterans, teaching"
     )
-
-    with st.expander("✨ Tutorial: A fresh way to find your best fit.", expanded=False):
-        st.markdown("""
-        Use the search bar to look up opportunities by title, service area, or skill. Narrow things down using filters in the sidebar. Listings shuffle each time you load the page, so you'll always see something new – but once you apply a filter, they’ll stay put.
-        """)
-
     if search_query != st.session_state.search_query:
         st.session_state.search_query = search_query
         st.session_state.page_number = 0
     if search_query:
-        query = search_query.lower()
-        filtered = filtered[filtered.apply(lambda row: any(query in str(row[fld]).lower() for fld in [
+        q = search_query.lower()
+        filtered = filtered[filtered.apply(lambda r: any(q in str(r[f]).lower() for f in [
             'program_name','description','member_duties','program_benefits','skills','service_areas'
         ]), axis=1)]
 
-    # === Pagination Logic ===
-    total_pages = max(1, (len(filtered) - 1) // RESULTS_PER_PAGE + 1)
-    start_idx = st.session_state.page_number * RESULTS_PER_PAGE
-    end_idx = start_idx + RESULTS_PER_PAGE
-    visible_listings = filtered.iloc[start_idx:end_idx]
+    # Pagination
+    total_pages = max(1, (len(filtered)-1)//RESULTS_PER_PAGE + 1)
+    start = st.session_state.page_number * RESULTS_PER_PAGE
+    end = start + RESULTS_PER_PAGE
+    visible = filtered.iloc[start:end]
 
-    # === Display Listings ===
-    for _, row in visible_listings.iterrows():
+    for _, row in visible.iterrows():
         st.subheader(row['program_name'])
         st.write(f"State: {row['program_state'].title()}")
-        start = format_date(row['accept_start'])
-        end = format_date(row['accept_end'])
-        st.write(f"Accepting Applications: {start} → {end}")
+        st.write(f"Accepting Applications: {format_date(row['accept_start'])} → {format_date(row['accept_end'])}")
         st.button("Learn more", key=f"learn_{row['listing_id']}", on_click=select_program, args=(row['listing_id'],))
         st.divider()
 
-    # === Pagination Controls ===
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2, col3 = st.columns([1,1,1])
     with col1:
         if st.session_state.page_number > 0:
             st.button("◀ Previous", on_click=go_prev)
     with col2:
-        st.markdown(f"**Page {st.session_state.page_number + 1} of {total_pages}**")
+        st.markdown(f"**Page {st.session_state.page_number+1} of {total_pages}**")
     with col3:
-        if st.session_state.page_number < total_pages - 1:
+        if st.session_state.page_number < total_pages-1:
             st.button("Next ▶", on_click=go_next)
 
 # === Detail View ===
 else:
-    # === Already had this: scroll to top on entering detail view ===
+    # scroll top on detail view
     components.html(
         """
         <script>
-          window.scrollTo(0, 0);
+          (function() {
+            const ctx = window.top || window.parent || window;
+            ctx.scrollTo(0, 0);
+          })();
         </script>
         """,
-        height=0,
-        width=0
+        height=1,
+        width=1
     )
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
-
-    col1, col2 = st.columns([1, 1])
+    col1, col2 = st.columns([1,1])
     with col1:
         st.header(prog['program_name'])
         url = f"https://my.americorps.gov/mp/listing/viewListing.do?fromSearch=true&id={prog['listing_id']}"
@@ -245,32 +230,27 @@ else:
         state = prog['program_state'].title()
         metro = str(prog['metro_area']).strip("[]'") if pd.notna(prog['metro_area']) else ""
         location = f"{state}, {metro}" if metro else state
-        start = format_date(prog['accept_start'])
-        end = format_date(prog['accept_end'])
-        age = f"{int(prog['age_minimum'])}+" if pd.notna(prog['age_minimum']) else "None"
         st.markdown(f"""
         <div class="summary-card">
           <h4 style="margin:0 0 8px;">Program Summary</h4>
           <p><strong>🗽 Location:</strong> {location}</p>
-          <p><strong>🗕 Dates:</strong> {start} – {end}</p>
+          <p><strong>🗕 Dates:</strong> {format_date(prog['accept_start'])} – {format_date(prog['accept_end'])}</p>
           <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
           <p><strong>🎓 Education:</strong> {prog['education_level']}</p>
-          <p><strong>✅ Age:</strong> {age}</p>
+          <p><strong>✅ Age:</strong> {f"{int(prog['age_minimum'])}+" if pd.notna(prog['age_minimum']) else "None"}</p>
         </div>
         """, unsafe_allow_html=True)
-
     st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
-    tabs = st.tabs(["💬 Overview", "🛠 Duties", "💵 Benefits", "☑️ Terms", "📚 Skills", "🌐 Service Areas", "✉️ Contact"])
+    tabs = st.tabs(["💬 Overview","🛠 Duties","💵 Benefits","☑️ Terms","📚 Skills","🌐 Service Areas","✉️ Contact"])
     with tabs[0]:
-        st.write(prog.get('description', ''))
+        st.write(prog.get('description',''))
         st.write(f"**Listing ID:** {prog['listing_id']}")
     with tabs[1]:
         st.write(prog['member_duties'])
     with tabs[2]:
         st.write(prog['program_benefits'])
     with tabs[3]:
-        terms_text = prog['terms'] if pd.notna(prog['terms']) else "None"
-        st.write(terms_text)
+        st.write(prog['terms'] if pd.notna(prog['terms']) else "None")
     with tabs[4]:
         skills = [s.strip() for s in prog['skills'].split(',') if s.strip()]
         st.markdown("".join(f'<span class="pill-skill">{s}</span>' for s in skills), unsafe_allow_html=True)
