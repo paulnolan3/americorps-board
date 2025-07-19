@@ -128,13 +128,19 @@ Disclaimer: This tool is not a government website or endorsed by AmeriCorps. Thi
 
 # === Main View ===
 if st.session_state.selected_program is None:
-    # scroll top on main view
+    # scroll top on main view using delayed scroll
     components.html(
         """
         <script>
           (function() {
-            const ctx = window.top || window.parent || window;
-            ctx.scrollTo(0, 0);
+            const scrollFn = () => {
+              const ctx = window.top || window.parent || window;
+              if (ctx) {
+                ctx.scrollTo(0, 0);
+                try { ctx.document.body.scrollTop = 0; ctx.document.documentElement.scrollTop = 0; } catch (e) {}
+              }
+            };
+            setTimeout(scrollFn, 100);
           })();
         </script>
         """,
@@ -210,8 +216,14 @@ else:
         """
         <script>
           (function() {
-            const ctx = window.top || window.parent || window;
-            ctx.scrollTo(0, 0);
+            const scrollFn = () => {
+              const ctx = window.top || window.parent || window;
+              if (ctx) {
+                ctx.scrollTo(0, 0);
+                try { ctx.document.body.scrollTop = 0; ctx.document.documentElement.scrollTop = 0; } catch (e) {}
+              }
+            };
+            setTimeout(scrollFn, 100);
           })();
         </script>
         """,
