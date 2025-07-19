@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 
+# === New: import components once for scroll control ===
+import streamlit.components.v1 as components
+
 # === CSS Styling ===
 st.markdown("""
 <style>
@@ -131,7 +134,16 @@ Disclaimer: This tool is not a government website or endorsed by AmeriCorps. Thi
 # === Main View ===
 
 if st.session_state.selected_program is None:
-    
+    # === New: scroll to top on entering main view ===
+    components.html(
+        """
+        <script>
+          window.scrollTo(0, 0);
+        </script>
+        """,
+        height=0,
+        width=0
+    )
 
     st.title("AmeriCorps Explorer")
 
@@ -210,12 +222,16 @@ if st.session_state.selected_program is None:
 
 # === Detail View ===
 else:
-    import streamlit.components.v1 as components
-    components.html("""
-<script>
-  window.scrollTo(0, 0);
-</script>
-""", height=0, width=0)
+    # === Already had this: scroll to top on entering detail view ===
+    components.html(
+        """
+        <script>
+          window.scrollTo(0, 0);
+        </script>
+        """,
+        height=0,
+        width=0
+    )
     prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
     st.button("◀ Back to search", on_click=clear_selection)
 
