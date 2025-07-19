@@ -120,7 +120,7 @@ educations = st.sidebar.multiselect("Education Level", [
 st.sidebar.markdown("**Work Schedule**")
 selected_work = [opt for opt in ["Full Time", "Part Time", "Summer"] if st.sidebar.checkbox(opt, value=True)]
 st.sidebar.markdown("---")
-apply_soon = st.sidebar.checkbox("Apply soon", help="Deadline in the next two weeks")
+apply_soon = st.sidebar.toggle("Apply soon", help="Deadline in the next two weeks")
 st.sidebar.markdown("---", help=None)
 st.sidebar.markdown(
     """
@@ -240,7 +240,6 @@ else:
           <h4 style="margin:0 0 8px;">Program Summary</h4>
           <p><strong>📍 Location:</strong> {location}</p>
           <p><strong>🗓️ Dates:</strong> {start_fmt} – {end_fmt}</p>
-          <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
           <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
           <p><strong>🎓 Education:</strong> {prog['education_level']}</p>
           <p><strong>✅ Age:</strong> {age}</p>
