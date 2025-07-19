@@ -175,7 +175,6 @@ if st.session_state.selected_program is None:
         key="service_area_filters",
         help="Filter by service area"
     )
-    st.session_state.service_area_filters = service_selected
     if service_selected:
         filtered = filtered[filtered['service_areas'].apply(
             lambda cell: any(sa in [s.strip() for s in cell.split(',')] for sa in service_selected)
@@ -241,6 +240,7 @@ else:
           <h4 style="margin:0 0 8px;">Program Summary</h4>
           <p><strong>📍 Location:</strong> {location}</p>
           <p><strong>🗓️ Dates:</strong> {start_fmt} – {end_fmt}</p>
+          <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
           <p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>
           <p><strong>🎓 Education:</strong> {prog['education_level']}</p>
           <p><strong>✅ Age:</strong> {age}</p>
