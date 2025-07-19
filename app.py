@@ -206,9 +206,8 @@ else:
             f"<p><strong>🗓️ Dates:</strong> {format_date(prog['accept_start'])} – {format_date(prog['accept_end'])}</p>"
             f"<p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>"
             f"<p><strong>🎓 Education:</strong> {prog['education_level']}</p>"
-            f"<p><strong>✅ Age:</strong> {int(prog['age_minimum']) if pd.notna(prog['age_minimum']) else 'None'}+</p></div>",
-            unsafe_allow_html=True
-        )
+            f"<p><strong>✅ Age:</strong> {int(prog['age_minimum']) if pd.notna(prog['age_minimum']) else 'None'}+</p></div>"
+        ,unsafe_allow_html=True)
 
     tabs = st.tabs(["💬 Overview","🛠 Duties","💵 Benefits","☑️ Terms","📚 Skills","🌐 Service Areas","✉️ Contact"])
     with tabs[0]:
@@ -221,10 +220,16 @@ else:
     with tabs[3]:
         st.write(prog['terms'] if pd.notna(prog['terms']) else 'None')
     with tabs[4]:
-        for skill in [s.strip() for s in prog['skills'].split(',') if s.strip()]:
-            st.badge(skill)
+        skills_list = [s.strip() for s in prog['skills'].split(',') if s.strip()]
+        if skills_list:
+            cols = st.columns(len(skills_list))
+            for idx, skill in enumerate(skills_list):
+                cols[idx].badge(skill)
     with tabs[5]:
-        for area in [a.strip() for a in prog['service_areas'].split(',') if a.strip()]:
-            st.badge(area)
+        areas_list = [a.strip() for a in prog['service_areas'].split(',') if a.strip()]
+        if areas_list:
+            cols2 = st.columns(len(areas_list))
+            for idx, area in enumerate(areas_list):
+                cols2[idx].badge(area)
     with tabs[6]:
         st.text(prog['contact'])
