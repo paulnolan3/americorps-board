@@ -52,7 +52,7 @@ if 'service_area_filters' not in st.session_state:
     st.session_state.service_area_filters = []
 
 # === Constants ===
-RESULTS_PER_PAGE = 20
+RESULTS_PER_PAGE = 10
 
 # === Data Loader ===
 @st.cache_data
@@ -115,7 +115,7 @@ Disclaimer: This tool is not a government website or endorsed by AmeriCorps. Thi
 if st.session_state.selected_program is None:
     st.title("AmeriCorps Explorer")
 
-    # Data filters
+    # Base filters
     filtered = df.copy()
     if states:
         filtered = filtered[filtered['program_state'].isin(states)]
@@ -128,10 +128,7 @@ if st.session_state.selected_program is None:
         cutoff = today + timedelta(days=14)
         filtered = filtered[(filtered['accept_end'].dt.date >= today) & (filtered['accept_end'].dt.date <= cutoff)]
 
-    # Count
-    st.markdown(f"### There are <span class='pill'>{len(filtered)}</span> opportunities to serve.", unsafe_allow_html=True)
-
-    # Search
+    # Search input
     search_query = st.text_input(
         "Search opportunities by name, service area, or skill",
         value=st.session_state.search_query,
@@ -143,8 +140,9 @@ if st.session_state.selected_program is None:
     if search_query:
         q = search_query.lower()
         filtered = filtered[filtered.apply(
-            lambda r: any(q in str(r[f]).lower() for f in ['program_name','description','member_duties','program_benefits','skills','service_areas']), axis=1)
-    ]
+            lambda r: any(q in str(r[f]).lower() for f in ['program_name','description','member_duties','program_benefits','skills','service_areas']),
+            axis=1
+        )]
 
     # Service Area pills
     selected = st.pills(
@@ -156,58 +154,64 @@ if st.session_state.selected_program is None:
     )
     if selected:
         filtered = filtered[filtered['service_areas'].apply(
-            lambda cell: any(s in [x.strip() for x in cell.split(',')] for s in selected)
+            lambda cell: any(s == x.strip() for x in cell.split(',') for s in selected)
         )]
 
-    # Pagination
-    total = max(1,(len(filtered)-1)//RESULTS_PER_PAGE+1)
-    start = st.session_state.page_number*RESULTS_PER_PAGE
-    end = start+RESULTS_PER_PAGE
-    page_data = filtered.iloc[start:end]
+    # Count display
+    st.markdown(f"### There are <span class='pill'>{len(filtered)}</span> opportunities to serve.", unsafe_allow_html=True)
 
-    # Listings
-    for _,row in page_data.iterrows():
+    # Pagination
+    total_pages = max(1, (len(filtered) - 1) // RESULTS_PER_PAGE + 1)
+    start_idx = st.session_state.page_number * RESULTS_PER_PAGE
+    end_idx = start_idx + RESULTS_PER_PAGE
+    visible_listings = filtered.iloc[start_idx:end_idx]
+
+    # Display listings
+    for _, row in visible_listings.iterrows():
         st.subheader(row['program_name'])
         st.write(f"State: {row['program_state'].title()}")
         st.write(f"Accepting Applications: {format_date(row['accept_start'])} → {format_date(row['accept_end'])}")
         st.button("Learn more", key=f"learn_{row['listing_id']}", on_click=select_program, args=(row['listing_id'],))
         st.divider()
 
-    # Nav
-    c1,c2,c3 = st.columns([1,1,1])
-    with c1:
-        if st.session_state.page_number>0: st.button("◀ Previous",on_click=go_prev)
-    with c2:
-        st.markdown(f"**Page {st.session_state.page_number+1} of {total}**")
-    with c3:
-        if st.session_state.page_number<total-1: st.button("Next ▶",on_click=go_next)
+    # Pagination controls
+    col1, col2, col3 = st.columns([1,1,1])
+    with col1:
+        if st.session_state.page_number > 0:
+            st.button("◀ Previous", on_click=go_prev)
+    with col2:
+        st.markdown(f"**Page {st.session_state.page_number + 1} of {total_pages}**")
+    with col3:
+        if st.session_state.page_number < total_pages - 1:
+            st.button("Next ▶", on_click=go_next)
 
-# Detail View
+# === Detail View ===
 else:
     import streamlit.components.v1 as components
     components.html("""
 <script>window.scrollTo(0,0);</script>
-""" ,height=0,width=0)
-    prog = df.loc[df['listing_id']==st.session_state.selected_program].iloc[0]
-    st.button("◀ Back to search",on_click=clear_selection)
+""", height=0, width=0)
+    prog = df.loc[df['listing_id'] == st.session_state.selected_program].iloc[0]
+    st.button("◀ Back to search", on_click=clear_selection)
 
-    col1,col2 = st.columns([1,1])
+    col1, col2 = st.columns([1,1])
     with col1:
         st.header(prog['program_name'])
-        link = f"https://my.americorps.gov/mp/listing/viewListing.do?fromSearch=true&id={prog['listing_id']}"
-        st.markdown(f"<a href='{link}' target='_blank' class='apply-btn'>Apply Now</a>", unsafe_allow_html=True)
+        url = f"https://my.americorps.gov/mp/listing/viewListing.do?fromSearch=true&id={prog['listing_id']}"
+        st.markdown(f'<a href="{url}" target="_blank" class="apply-btn">Apply Now</a>', unsafe_allow_html=True)
     with col2:
-        loc = prog['program_state'].title()
+        state = prog['program_state'].title()
         metro = str(prog['metro_area']).strip("[]'") if pd.notna(prog['metro_area']) else ""
-        loc = f"{loc}, {metro}" if metro else loc
+        location = f"{state}, {metro}" if metro else state
         st.markdown(
             f"<div class='summary-card'><h4 style='margin:0 0 8px;'>Program Summary</h4>"
-            f"<p><strong>📍 Location:</strong> {loc}</p>"
+            f"<p><strong>📍 Location:</strong> {location}</p>"
             f"<p><strong>🗓️ Dates:</strong> {format_date(prog['accept_start'])} – {format_date(prog['accept_end'])}</p>"
             f"<p><strong>💼 Schedule:</strong> {prog['work_schedule']}</p>"
             f"<p><strong>🎓 Education:</strong> {prog['education_level']}</p>"
-            f"<p><strong>✅ Age:</strong> {int(prog['age_minimum']) if pd.notna(prog['age_minimum']) else 'None'}+</p></div>"
-        ,unsafe_allow_html=True)
+            f"<p><strong>✅ Age:</strong> {int(prog['age_minimum']) + '+' if pd.notna(prog['age_minimum']) else 'None'}+</p></div>",
+            unsafe_allow_html=True
+        )
 
     tabs = st.tabs(["💬 Overview","🛠 Duties","💵 Benefits","☑️ Terms","📚 Skills","🌐 Service Areas","✉️ Contact"])
     with tabs[0]:
@@ -228,5 +232,4 @@ else:
         for area in areas_list:
             st.badge(area)
     with tabs[6]:
-        st.text(prog['contact'])
         st.text(prog['contact'])
