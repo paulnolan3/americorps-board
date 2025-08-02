@@ -114,7 +114,7 @@ Disclaimer: This tool is not a government website or endorsed by AmeriCorps. Thi
 
 # === Main View ===
 if st.session_state.selected_program is None:
-    st.title("AmeriCorps Explorer")
+    st.title("AmeriCorps Explorer 🧭")
 
     # Data filters
     filtered = df.copy()
